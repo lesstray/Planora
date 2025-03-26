@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'social_django',
+    'django_otp',
+    'django_otp.plugins.otp_static',
+    'two_factor',
     'registration',
     'login',
     'home',
@@ -55,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware'
 ]
 
 ROOT_URLCONF = 'planora.urls'
@@ -83,8 +87,12 @@ WSGI_APPLICATION = 'planora.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': '9341',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
 
@@ -121,7 +129,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-# AUTH_USER_MODEL = 'tables.CustomUser'
+AUTH_USER_MODEL = 'registration.CustomUser'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -152,7 +160,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 LOGIN_URL = '/auth/login/google-oauth2/'
 
 LOGIN_REDIRECT_URL = '/home'
-LOGOUT_REDIRECT_URL = '/homelogin'
+LOGOUT_REDIRECT_URL = '/login'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
