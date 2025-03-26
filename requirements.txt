@@ -1,4 +1,5 @@
 django
 django-extensions
 django-recaptcha
+social-auth-app-django
 requests
