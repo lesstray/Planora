@@ -144,3 +144,14 @@ button:active {
     box-shadow: none;
 }
 
+.g-recaptcha {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.error {
+    color: #ff4444;
+    text-align: center;
+    margin: 10px 0;
+}

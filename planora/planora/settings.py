@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'checkwork',
     'login',
+    'django_recaptcha',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,6 +84,8 @@ DATABASES = {
     }
 }
 
+RECAPTCHA_PUBLIC_KEY = '6LfWeAArAAAAAGGJPad1xXbx3tYEK42XATLYcOM9'
+RECAPTCHA_PRIVATE_KEY = '6LfWeAArAAAAAJ9LUja_Ndj7_pcwCGkX82P_BqXk'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

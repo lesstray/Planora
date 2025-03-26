@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{% static 'checkwork/css/login.css' %}">
-    <title>Title</title>
+    <title>Логин</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -22,6 +23,12 @@
                     <label for="password">Пароль</label>
                     <input id="password" type="password" name="password">
                 </div>
+
+                <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_PUBLIC_KEY }}"></div>
+
+                {% if captcha_error %}
+                    <div class="error">{{ captcha_error }}</div>
+                {% endif %}
 
                 {% csrf_token %}
                 <div class="button-block">

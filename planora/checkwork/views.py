@@ -2,8 +2,19 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login as user_login, logout as user_logout
 from django.http import HttpResponseRedirect
-
+import requests
+from django.conf import settings
+from django.contrib import messages
 # Create your views here.
+
+def verify_recaptcha(token):
+    data = {
+        'secret': settings.RECAPTCHA_PRIVATE_KEY,
+        'response': token
+    }
+    response = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+    return response.json().get('success', False)
+
 def index(request):
     return render(request, 'checkwork/index.html')
 
@@ -18,6 +29,11 @@ def home_view(request):
 
 def login_view(request):
     if request.method == "POST":
+        # Проверка reCAPTCHA
+        recaptcha_token = request.POST.get('g-recaptcha-response')
+        if not verify_recaptcha(recaptcha_token):
+            messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+            return render(request, 'checkwork/login.html', {'captcha_error': 'Проверка reCAPTCHA не пройдена'})
         user_name = request.POST.get('login')
         user_password = request.POST.get('password')
         # здесь логика сверки пользователя с БД
@@ -31,6 +47,11 @@ def login_view(request):
 
 def reg_view(request):
     if request.method == "POST":
+        # Проверка reCAPTCHA
+        recaptcha_token = request.POST.get('g-recaptcha-response')
+        if not verify_recaptcha(recaptcha_token):
+            messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+            return render(request, 'checkwork/reg.html', {'captcha_error': 'Проверка reCAPTCHA не пройдена'})
         user_name = request.POST.get('login')
         user_password1 = request.POST.get('password1')
         user_password2 = request.POST.get('password2')
