@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'social_django',
     'django_otp',
-    'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_email',
     'two_factor',
     'registration',
     'login',
@@ -60,6 +60,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_otp.middleware.OTPMiddleware'
 ]
+
+# Настройки email для отправки кодов
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'pizazaz@mail.ru'
+# EMAIL_HOST_PASSWORD = 'xkjondclnbvxoxmh' main@ohlopkoff.ru
+EMAIL_HOST_PASSWORD = '3t9R43RWUjws3Mfbhpt8'
+DEFAULT_FROM_EMAIL = 'pizazaz@mail.ru'
 
 ROOT_URLCONF = 'planora.urls'
 
