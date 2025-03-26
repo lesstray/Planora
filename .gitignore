@@ -1,5 +1,6 @@
 /planoraVenv/
-.idea/
-venv/
-.venv/
+/.idea/
+/venv/
+/.venv/
+/planora/.idea
 *.pyc
