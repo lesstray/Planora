@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.contrib.auth import logout
 
+
 # Импорт представлений из приложений
 from home.views import home_view
 from login.views import login_view

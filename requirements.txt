@@ -2,4 +2,6 @@ django
 django-extensions
 django-recaptcha
 social-auth-app-django
+django-two-factor-auth
 requests
+psycopg2-binary

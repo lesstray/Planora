@@ -11,6 +11,17 @@
             margin: 20px 0;
             transform: scale(0.85);
         }
+        .error-message {
+            color: #ff4444;
+            margin: 5px 0 15px;
+            font-size: 14px;
+        }
+        .input-block {
+            margin-bottom: 15px;
+        }
+        input.error {
+            border-color: #ff4444;
+        }
     </style>
 </head>
 <body>
@@ -18,39 +29,65 @@
         <div class="filter"></div>
 
         <div class="form-container">
-            <form method="POST" class="auth-form">
+            <form method="POST" class="auth-form" id="register-form" action="{% url 'register' %}">
                 <h2 class="form-title">Регистрация</h2>
+
+                <!-- Вывод сообщений об ошибках/успехе -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="error-message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
 
                 <div class="input-block">
                     <label for="full_name">ФИО</label>
-                    <input id="full_name" type="text" name="full_name" placeholder="Иванов Иван Иванович" required>
+                    <input id="full_name" type="text" name="full_name"
+                           value="{{ request.POST.full_name|default:'' }}"
+                           placeholder="Иванов Иван Иванович" required>
                 </div>
 
                 <div class="input-block">
                     <label for="email">Электронная почта</label>
-                    <input id="email" type="email" name="email" placeholder="example@mail.ru" required>
+                    <input id="email" type="email" name="email"
+                           value="{{ request.POST.email|default:'' }}"
+                           placeholder="example@mail.ru" required>
+                    {% if form.errors.email %}
+                        <div class="error-message">{{ form.errors.email }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="input-block">
                     <label for="username">Логин</label>
-                    <input id="username" type="text" name="username" placeholder="Придумайте логин" required>
+                    <input id="username" type="text" name="username"
+                           value="{{ request.POST.username|default:'' }}"
+                           placeholder="Придумайте логин" required>
+                    {% if form.errors.username %}
+                        <div class="error-message">{{ form.errors.username }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="input-block">
                     <label for="password1">Пароль</label>
-                    <input id="password1" type="password" name="password1" placeholder="Не менее 8 символов" required>
+                    <input id="password1" type="password" name="password1"
+                           placeholder="Не менее 8 символов" required>
+                    {% if form.errors.password1 %}
+                        <div class="error-message">{{ form.errors.password1 }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="input-block">
                     <label for="password2">Подтвердите пароль</label>
-                    <input id="password2" type="password" name="password2" placeholder="Повторите пароль" required>
+                    <input id="password2" type="password" name="password2"
+                           placeholder="Повторите пароль" required>
+                    {% if form.errors.password2 %}
+                        <div class="error-message">{{ form.errors.password2 }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="g-recaptcha"
-                    data-sitekey="6LfWeAArAAAAAGGJPad1xXbx3tYEK42XATLYcOM9"
-                    data-callback="onRecaptchaSuccess"></div>
+                    data-sitekey="6LfWeAArAAAAAGGJPad1xXbx3tYEK42XATLYcOM9"></div>
                 {% if captcha_error %}
-                    <div class="error">{{ captcha_error }}</div>
+                    <div class="error-message">{{ captcha_error }}</div>
                 {% endif %}
 
                 {% csrf_token %}
