@@ -3,3 +3,4 @@
 /venv/
 /.venv/
 /planora/.idea
+/planora/checkwork/__pycache__
