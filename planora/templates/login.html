@@ -6,6 +6,12 @@
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
     <title>Логин</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        .g-recaptcha {
+            margin: 20px 0;
+            transform: scale(0.85);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -24,8 +30,9 @@
                     <input id="password" type="password" name="password">
                 </div>
 
-                <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_PUBLIC_KEY }}"></div>
-
+                <div class="g-recaptcha"
+                    data-sitekey="6LfWeAArAAAAAGGJPad1xXbx3tYEK42XATLYcOM9"
+                    data-callback="onRecaptchaSuccess"></div>
                 {% if captcha_error %}
                     <div class="error">{{ captcha_error }}</div>
                 {% endif %}
