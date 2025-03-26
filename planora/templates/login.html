@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
     <title>Логин</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <style>
+     <style>
         .g-recaptcha {
             margin: 20px 0;
             transform: scale(0.85);
@@ -18,6 +18,14 @@
         <div class="filter"></div>
 
         <div class="form-container">
+
+            <!-- Кнопка Google OAuth (social-auth) -->
+            <div class="oauth-block">
+                <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-btn">
+                    <img src="https://img.icons8.com/?size=100&id=V5cGWnc9R4xj&format=png&color=000000" alt="Google">
+                    Войти через Google
+                </a>
+            </div>
 
             <form method="POST">
 
@@ -33,6 +41,7 @@
                 <div class="g-recaptcha"
                     data-sitekey="6LfWeAArAAAAAGGJPad1xXbx3tYEK42XATLYcOM9"
                     data-callback="onRecaptchaSuccess"></div>
+
                 {% if captcha_error %}
                     <div class="error">{{ captcha_error }}</div>
                 {% endif %}
