@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'checkwork/css/register.css' %}">
+    <title>Регистрация</title>
+</head>
+<body>
+    <div class="container">
+        <div class="filter"></div>
+
+        <div class="form-container">
+            <form method="POST" class="auth-form">
+                <h2 class="form-title">Регистрация</h2>
+
+                <div class="input-block">
+                    <label for="full_name">ФИО</label>
+                    <input id="full_name" type="text" name="full_name" placeholder="Иванов Иван Иванович" required>
+                </div>
+
+                <div class="input-block">
+                    <label for="email">Электронная почта</label>
+                    <input id="email" type="email" name="email" placeholder="example@mail.ru" required>
+                </div>
+
+                <div class="input-block">
+                    <label for="username">Логин</label>
+                    <input id="username" type="text" name="username" placeholder="Придумайте логин" required>
+                </div>
+
+                <div class="input-block">
+                    <label for="password1">Пароль</label>
+                    <input id="password1" type="password" name="password1" placeholder="Не менее 8 символов" required>
+                </div>
+
+                <div class="input-block">
+                    <label for="password2">Подтвердите пароль</label>
+                    <input id="password2" type="password" name="password2" placeholder="Повторите пароль" required>
+                </div>
+
+                {% csrf_token %}
+                <div class="button-block">
+                    <button type="submit" class="auth-button">Зарегистрироваться</button>
+                </div>
+
+                <div class="auth-link">
+                    Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="filter"></div>
+    </div>
+</body>
+</html>
