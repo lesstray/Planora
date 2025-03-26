@@ -22,7 +22,7 @@ from django.contrib.auth import logout
 
 # Импорт представлений из приложений
 from home.views import home_view
-from login.views import login_view
+from login.views import login_view, verify_2fa
 from registration.views import register_view
 from about.views import about_view
 
@@ -34,7 +34,7 @@ urlpatterns = [
     path('home/', home_view, name='home'),
     path('', home_view, name='home'),
     path('about/', about_view, name='about'),
-    path('', include('social_django.urls', namespace='social')),
     path('logout/', logout, {'next_page': settings.LOGOUT_REDIRECT_URL}, name='logout'),
-    path('oauth/', include('social_django.urls', namespace='social'))
+    path('oauth/', include('social_django.urls', namespace='social')),
+    path('verify-2fa/', verify_2fa, name='verify_2fa')
 ]
