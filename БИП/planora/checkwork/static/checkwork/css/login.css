@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
+* {
+  font-family: "Rubik", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  box-sizing: border-box;
+}
+
+html, body {
+    background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    background: url('https://source.unsplash.com/random/1920x1080/?dark,abstract') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 0;
+}
+
+.filter {
+    height: 20px;
+}
+
+.form-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateY(0);
+    transition: all 0.3s ease;
+    margin: auto;
+}
+
+.form-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+form {
+    color: whitesmoke;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.input-block {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.input-block > label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.input-block > input {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.input-block > input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.input-block > input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.button-block {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+button {
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    min-width: 200px;
+}
+
+button:hover {
+    background: linear-gradient(45deg, #88d3ce, #6e45e2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+/* Анимация для label при фокусе */
+.input-block:focus-within > label {
+    color: #88d3ce;
+    transform: translateY(-5px);
+}
+
+/* Эффект для кнопки при нажатии */
+button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
