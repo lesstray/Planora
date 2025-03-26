@@ -1,0 +1,12 @@
+Установка джанго в виртальное окружение
+pipenv shell
+pipenv install django
+
+Генерация структуры и управляющий скриптов
+django-admin startproject planora
+
+Создание нового приложения
+python manage.py startapp reg
+
+Заупск сервера
+python manage.py runserver
