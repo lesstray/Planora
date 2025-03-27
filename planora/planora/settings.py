@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
+    'drf_yasg',
     'django_recaptcha',
     'django_extensions',
     'django.contrib.admin',
@@ -100,7 +102,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': '9341',
+        'PASSWORD': 'Frest4920310',
         'HOST': 'localhost',
         'PORT': '5432'
     }

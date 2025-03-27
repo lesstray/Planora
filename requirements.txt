@@ -7,3 +7,5 @@ requests
 psycopg2-binary
 django-otp
 django-otp-yubikey
+drf-yasg
+djangorestframework
