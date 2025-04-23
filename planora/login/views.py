@@ -103,12 +103,12 @@ def verify_2fa(request):
         try:
             code = TwoFactorCode.objects.get(user=user, code=entered_code)
 
-            # Проверяем количество попыток ДО увеличения счетчика
-            if code.attempt_count >= 3:  # Используем >= вместо >
+            # Проверка количества попыток ДО увеличения счетчика
+            if code.attempt_count >= 3:
                 messages.error(request, 'Превышено количество попыток')
                 return HttpResponseRedirect(reverse('login'))
 
-            # Увеличиваем счетчик и сохраняем
+            # Увеличение счетчика и сохранение
             code.attempt_count += 1
             code.save()
 
@@ -118,12 +118,11 @@ def verify_2fa(request):
 
                 auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 del request.session['2fa_user_id']
-                next_url = request.POST.get('next') or request.GET.get('next') or settings.LOGIN_REDIRECT_URL
-                return HttpResponseRedirect(next_url)
+                return HttpResponseRedirect(reverse('home'))
             else:
                 messages.error(request, 'Код устарел или уже использован')
         except TwoFactorCode.DoesNotExist:
-            # Получаем или создаем запись для неверного кода
+            # Получение или создание записи для неверного кода
             code, created = TwoFactorCode.objects.get_or_create(
                 user=user,
                 defaults={'code': 'invalid', 'is_used': True}
@@ -131,7 +130,7 @@ def verify_2fa(request):
             if not created:
                 if code.attempt_count >= 3:
                     messages.error(request, 'Превышено количество попыток')
-                    return HttpResponseRedirect(reverse('login'))
+                    return HttpResponseRedirect(reverse('register'))
                 code.attempt_count += 1
                 code.save()
 

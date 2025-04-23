@@ -26,7 +26,7 @@ from rest_framework import permissions
 # Импорт представлений из приложений
 from home.views import home_view
 from login.views import login_view, verify_2fa
-from registration.views import register_view
+from registration.views import register_view, verify_registration
 from about.views import about_view
 
 
@@ -54,4 +54,5 @@ urlpatterns = [
     path('api/', include('home.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('verify-registration/', verify_registration, name='verify_registration'),
 ]

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <title>Подтверждение регистрации</title>
+    <style>
+        .error-message {
+            color: #ff4444;
+            margin: 5px 0 15px;
+            font-size: 14px;
+        }
+        .input-block {
+            margin-bottom: 15px;
+        }
+        input.error {
+            border-color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="filter"></div>
+
+        <div class="form-container">
+            <h2>Подтверждение регистрации</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                <p>Мы отправили 6-значный код подтверждения на вашу почту <strong>{{ email }}</strong>. Введите его ниже:</p>
+
+                <div class="input-block">
+                    <label for="code">Код подтверждения</label>
+                    <input id="code" type="text" name="code" placeholder="123456" required>
+                </div>
+
+                {% csrf_token %}
+                <div class="button-block">
+                    <button type="submit" class="auth-button">Подтвердить регистрацию</button>
+                </div>
+
+                <div class="auth-link">
+                    Не получили код? <a href="{% url 'register' %}">Попробовать снова</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="filter"></div>
+    </div>
+</body>
+</html>
