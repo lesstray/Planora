@@ -131,6 +131,7 @@ class AttendanceStatsViewSet(viewsets.ReadOnlyModelViewSet):
         # Здесь может быть логика для графиков (например, pandas + matplotlib)
         return Response({'data': 'Analytics here'})
 
+
 def root_redirect(request):
     """
     Перенаправляет корневой URL на страницу регистрации.
