@@ -15,6 +15,28 @@
             color: #ff4444;
             margin: 5px 0 15px;
             font-size: 14px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #ffebee;
+        }
+        .success-message {
+            color: #2e7d32;
+            margin: 5px 0 15px;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e8f5e9;
+        }
+        .form-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #6e45e2, #88d3ce);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block; /* Это важно для градиента */
         }
         .oauth-block {
             margin-bottom: 20px;
@@ -41,10 +63,13 @@
         <div class="filter"></div>
 
         <div class="form-container">
-            <!-- Сообщения об ошибках -->
+            <h2 class="form-title">Авторизация</h2>
+
             {% if messages %}
                 {% for message in messages %}
-                    <div class="error-message">{{ message }}</div>
+                    <div class="{% if message.tags %}{{ message.tags }}-message{% else %}info-message{% endif %}">
+                        {{ message }}
+                    </div>
                 {% endfor %}
             {% endif %}
 
