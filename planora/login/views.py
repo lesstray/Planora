@@ -122,7 +122,7 @@ def verify_2fa(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
 
                 # Очистка сессии
                 del request.session['2fa_user_id']
-                return redirect('home')
+                return redirect('dashboard')
             else:
                 messages.error(request, 'Код устарел или уже использован')
 

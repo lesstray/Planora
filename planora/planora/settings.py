@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'registration',
     'login',
     'home',
-    'about'
+    'about',
+    'account'
 ]
 
 MIDDLEWARE = [
@@ -60,8 +61,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_otp.middleware.OTPMiddleware'
+    'django_otp.middleware.OTPMiddleware',
+    'account.middleware.SessionInfoMiddleware',
 ]
+
+# Настройки сессии
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400  # 1 день в секундах
 
 # Настройки email для отправки кодов
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -168,10 +174,10 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '799111395392-j09mh0mpjd6c8ejhgupkhg7s21h7r3es.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
-LOGIN_URL = '/auth/login/google-oauth2/'
+LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = '/home'
-LOGOUT_REDIRECT_URL = '/login'
+LOGIN_REDIRECT_URL = 'account_dashboard'
+LOGOUT_REDIRECT_URL = 'home'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
