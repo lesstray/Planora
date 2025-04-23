@@ -68,10 +68,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'pizazaz@mail.ru'
-# EMAIL_HOST_PASSWORD = 'xkjondclnbvxoxmh' main@ohlopkoff.ru
-EMAIL_HOST_PASSWORD = '3t9R43RWUjws3Mfbhpt8'
-DEFAULT_FROM_EMAIL = 'pizazaz@mail.ru'
+EMAIL_HOST_USER = 'planora.ibks@mail.ru'
+EMAIL_HOST_PASSWORD = 'iDXp2YtYaftrpngp9ydH'
+DEFAULT_FROM_EMAIL = 'planora.ibks@mail.ru'
 
 ROOT_URLCONF = 'planora.urls'
 
@@ -102,7 +101,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'Frest4920310',
+        'PASSWORD': '9341',
         'HOST': 'localhost',
         'PORT': '5432'
     }
