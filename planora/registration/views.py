@@ -1,162 +1,185 @@
-from django.http import HttpResponseRedirect
+import requests
+from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate, login, get_user_model
-import requests
+from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.urls import reverse
 from login.models import TwoFactorCode
+from typing import Dict, Any, Union
 
 
 User = get_user_model()
 
 
-def verify_recaptcha(token):
+def verify_recaptcha(token: str) -> bool:
     """
-    Проверяет токен Google reCAPTCHA.
+    Проверяет токен Google reCAPTCHA v2.
 
-    :param token: Токен reCAPTCHA, полученный из формы.
+    :param token: токен reCAPTCHA, полученный из формы.
     :return: True, если проверка пройдена успешно, иначе False.
     """
     data = {
         'secret': settings.RECAPTCHA_PRIVATE_KEY,
         'response': token
     }
-    response = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
-    return response.json().get('success', False)
+    try:
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=data,
+            timeout=5
+        )
+        result = response.json()
+        return result.get('success', False)
+    except requests.RequestException:
+        return False
 
 
-def register_view(request):
+def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     """
-    Отображает страницу регистрации и обрабатывает ввод пользователя.
+    Обрабатывает регистрацию нового пользователя с подтверждением по email
 
     :param request: HTTP-запрос от пользователя.
-    :return: HTTP-ответ с HTML-страницей регистрации или редирект на домашнюю страницу.
+    :return: HttpResponseRedirect при успехе или render с формой при ошибке
     """
-    if request.method == "POST":
-        # # Проверка CAPTCHA
-        # recaptcha_token = request.POST.get('g-recaptcha-response')
-        # if not recaptcha_token:
-        #     messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
-        #     return render(request, 'register.html', {
-        #         'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
-        #         'username': request.POST.get('username', ''),
-        #         'email': request.POST.get('email', ''),
-        #         'full_name': request.POST.get('full_name', '')
-        #     })
-        # if not verify_recaptcha(recaptcha_token):
-        #     messages.error(request, 'Ошибка проверки reCAPTCHA')
-        #     return render(request, 'register.html', {
-        #         'captcha_error': 'Проверка reCAPTCHA не пройдена',
-        #         'username': request.POST.get('username', ''),
-        #         'email': request.POST.get('email', ''),
-        #         'full_name': request.POST.get('full_name', '')
-        #     })
+    if request.method != "POST":
+        return render(request, 'register.html')
 
-        # Получение данных
-        username = request.POST.get('username').strip()
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        email = request.POST.get('email').strip()
-        full_name = request.POST.get('full_name').strip()
+    # Проверка CAPTCHA
+    recaptcha_token = request.POST.get('g-recaptcha-response')
+    if not recaptcha_token:
+        messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+        return render(request, 'register.html', {
+            'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
+            'username': request.POST.get('username', ''),
+            'email': request.POST.get('email', ''),
+            'full_name': request.POST.get('full_name', '')
+        })
+    if not verify_recaptcha(recaptcha_token):
+        messages.error(request, 'Ошибка проверки reCAPTCHA')
+        return render(request, 'register.html', {
+            'captcha_error': 'Проверка reCAPTCHA не пройдена',
+            'username': request.POST.get('username', ''),
+            'email': request.POST.get('email', ''),
+            'full_name': request.POST.get('full_name', '')
+        })
 
-        # Валидация данных
-        errors = {}
-        if not username:
-            errors['username'] = 'Введите логин'
-        if not email:
-            errors['email'] = 'Введите email'
-        if not full_name:
-            errors['full_name'] = 'Введите ФИО'
-        if not password1 or not password2:
-            errors['password1'] = 'Введите пароль'
-        elif password1 != password2:
-            errors['password2'] = 'Пароли не совпадают'
-        else:
-            try:
-                validate_password(password1)
-            except ValidationError as e:
-                errors['password1'] = ', '.join(e.messages)
+    # Получение и очистка данных формы
+    username = request.POST.get('username').strip()
+    password1 = request.POST.get('password1')
+    password2 = request.POST.get('password2')
+    email = request.POST.get('email').strip()
+    full_name = request.POST.get('full_name').strip()
 
-        # Проверка существующих пользователей
-        existing_user = User.objects.filter(username=username).first()
-        if existing_user:
-            if existing_user.is_active:
-                errors['username'] = 'Пользователь с таким именем уже существует'
-            else:
-                # Удаляем старую неактивную регистрацию
-                existing_user.delete()
-                TwoFactorCode.objects.filter(user=existing_user).delete()
+    # Валидация данных
+    errors: Dict[str, str] = {}
 
-        existing_email = User.objects.filter(email=email).first()
-        if existing_email:
-            if existing_email.is_active:
-                errors['email'] = 'Пользователь с таким email уже существует'
-            else:
-                # Удаляем старую неактивную регистрацию
-                existing_email.delete()
-                TwoFactorCode.objects.filter(user=existing_email).delete()
+    # Проверка обязательных полей
+    if not username:
+        errors['username'] = 'Введите логин'
+    if not email:
+        errors['email'] = 'Введите email'
+    if not full_name:
+        errors['full_name'] = 'Введите ФИО'
 
-        if errors:
-            for field, error in errors.items():
-                messages.error(request, f'{field}: {error}')
-            return render(request, 'register.html', {
-                'username': username,
-                'email': email,
-                'full_name': full_name,
-                'errors': errors
-            })
-
-        # Создание неактивного пользователя
+    # Проверка паролей
+    if not password1 or not password2:
+        errors['password'] = 'Введите пароль'
+    elif password1 != password2:
+        errors['password'] = 'Пароли не совпадают'
+    else:
         try:
-            user = User.objects.create_user(
-                username=username,
-                password=password1,
-                email=email,
-                full_name=full_name,
-                is_active=False     # Пользователь неактивен до подтверждения почты
-            )
+            validate_password(password1)
+        except ValidationError as e:
+            errors['password'] = ', '.join(e.messages)
 
-            # Генерация и отправка кода подтверждения
-            code = TwoFactorCode.generate_code(user)
-            send_mail(
-                'Подтверждение регистрации',
-                f'Ваш код подтверждения: {code.code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
-            )
+    # Проверка существующих пользователей
+    existing_user = User.objects.filter(username=username).first()
+    if existing_user:
+        if existing_user.is_active:
+            errors['username'] = 'Пользователь с таким именем уже существует'
+        else:
+            # Удаление старой неактивной регистрации
+            existing_user.delete()
+            TwoFactorCode.objects.filter(user=existing_user).delete()
 
-            # Сохранение user_id в сессии для подтверждения
-            request.session['registration_user_id'] = user.id
-            messages.success(request, 'Код подтверждения отправлен на вашу почту')
-            return redirect('verify_registration')
+    existing_email = User.objects.filter(email=email).first()
+    if existing_email:
+        if existing_email.is_active:
+            errors['email'] = 'Пользователь с таким email уже существует'
+        else:
+            # Удаление старой неактивной регистрации
+            existing_email.delete()
+            TwoFactorCode.objects.filter(user=existing_email).delete()
 
-        except Exception as e:
-            messages.error(request, f'Ошибка при создании пользователя: {str(e)}')
-            return render(request, 'register.html', {
-                'username': username,
-                'email': email,
-                'full_name': full_name
-            })
+    # Обработка ошибок
+    if errors:
+        for error in errors.values():
+            messages.error(request, error)
+        return render(request, 'register.html', {
+            'username': username,
+            'email': email,
+            'full_name': full_name
+        })
 
-    return render(request, 'register.html')
-
-
-def verify_registration(request):
-    if 'registration_user_id' not in request.session:
-        messages.error(request, 'Сессия подтверждения истекла')
-        return HttpResponseRedirect(reverse('register'))
-
+    # Создание неактивного пользователя
     try:
-        user = User.objects.get(id=request.session['registration_user_id'])
+        user = User.objects.create_user(
+            username=username,
+            password=password1,
+            email=email,
+            full_name=full_name,
+            is_active=False     # Пользователь неактивен до подтверждения почты
+        )
+
+        # Генерация и отправка кода подтверждения
+        code = TwoFactorCode.generate_code(user)
+        send_mail(
+            subject='Подтверждение регистрации',
+            message=f'Ваш код подтверждения: {code.code}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+
+        # Сохранение ID пользователя в сессии
+        request.session['registration_user_id'] = user.id
+        messages.success(request, 'Код подтверждения отправлен на вашу почту')
+        return redirect('verify_registration')
+
+    except Exception as e:
+        messages.error(request, f'Ошибка при регистрации: {str(e)}')
+        return render(request, 'register.html', {
+            'username': username,
+            'email': email,
+            'full_name': full_name
+        })
+
+
+def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
+    """
+    Подтверждение регистрации по коду из email
+
+    :param request: HTTP-запрос
+    :return: HttpResponseRedirect при успехе или render с формой подтверждения
+    """
+
+    # Проверка сессии
+    user_id = request.session.get('registration_user_id')
+    if not user_id:
+        messages.error(request, 'Сессия подтверждения истекла')
+        return redirect('register')
+
+    # Получение пользователя
+    try:
+        user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         messages.error(request, 'Пользователь не найден')
-        return HttpResponseRedirect(reverse('register'))
+        return redirect('register')
 
+    # Обработка POST-запроса с кодом подтверждения
     if request.method == "POST":
         entered_code = request.POST.get('code', '').strip()
 
@@ -166,12 +189,13 @@ def verify_registration(request):
             # Проверка количества попыток ДО увеличения счетчика
             if code.attempt_count >= 3:
                 messages.error(request, 'Превышено количество попыток')
-                return HttpResponseRedirect(reverse('register'))
+                return redirect('register')
 
             # Увеличение счетчика и сохранение
             code.attempt_count += 1
             code.save()
 
+            # Проверка валидности кода
             if code.is_valid():
                 code.is_used = True
                 code.save()
@@ -180,13 +204,15 @@ def verify_registration(request):
                 user.is_active = True
                 user.save()
 
+                # Очистка сессии
                 del request.session['registration_user_id']
                 messages.success(request, 'Регистрация успешно подтверждена! Теперь вы можете войти.')
-                return HttpResponseRedirect(reverse('login'))
+                return redirect('login')
             else:
                 messages.error(request, 'Код устарел или уже использован')
+
         except TwoFactorCode.DoesNotExist:
-            # Получение или создание записи для неверного кода
+            # Обработка неверного кода
             code, created = TwoFactorCode.objects.get_or_create(
                 user=user,
                 defaults={'code': 'invalid', 'is_used': True}
@@ -194,7 +220,7 @@ def verify_registration(request):
             if not created:
                 if code.attempt_count >= 3:
                     messages.error(request, 'Превышено количество попыток')
-                    return HttpResponseRedirect(reverse('register'))
+                    return redirect('register')
                 code.attempt_count += 1
                 code.save()
 
