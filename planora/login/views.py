@@ -26,7 +26,6 @@ def login_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     #     return redirect(settings.LOGIN_REDIRECT_URL)
 
     if request.method == "POST":
-        # Проверка CAPTCHA
         recaptcha_token = request.POST.get('g-recaptcha-response')
         if not recaptcha_token:
             messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')

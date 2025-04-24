@@ -9,3 +9,6 @@ django-otp
 django-otp-yubikey
 drf-yasg
 djangorestframework
+bs4
+lxml
+dateparser

@@ -44,6 +44,47 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     :param request: HTTP-запрос от пользователя.
     :return: HttpResponseRedirect при успехе или render с формой при ошибке
     """
+    if request.method == "POST":
+        # # Проверка CAPTCHA
+        recaptcha_token = request.POST.get('g-recaptcha-response')
+        if not recaptcha_token:
+            messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+            return render(request, 'register.html', {
+                'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
+                'username': request.POST.get('username', ''),
+                'email': request.POST.get('email', ''),
+                'full_name': request.POST.get('full_name', '')
+            })
+        if not verify_recaptcha(recaptcha_token):
+            messages.error(request, 'Ошибка проверки reCAPTCHA')
+            return render(request, 'register.html', {
+                'captcha_error': 'Проверка reCAPTCHA не пройдена',
+                'username': request.POST.get('username', ''),
+                'email': request.POST.get('email', ''),
+                'full_name': request.POST.get('full_name', '')
+            })
+
+        # Получение данных
+        username = request.POST.get('username').strip()
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        email = request.POST.get('email').strip()
+        full_name = request.POST.get('full_name').strip()
+
+        # Валидация данных
+        errors = {}
+
+        if not username:
+            errors['username'] = 'Введите логин'
+        if not email:
+            errors['email'] = 'Введите email'
+        if not full_name:
+            errors['full_name'] = 'Введите ФИО'
+        if not password1 or not password2:
+            errors['password1'] = 'Введите пароль'
+        elif password1 != password2:
+            errors['password2'] = 'Пароли не совпадают'
+
     if request.method != "POST":
         return render(request, 'register.html')
 
@@ -109,6 +150,7 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     if existing_email:
         if existing_email.is_active:
             errors['email'] = 'Пользователь с таким email уже существует'
+
         else:
             # Удаление старой неактивной регистрации
             existing_email.delete()

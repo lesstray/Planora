@@ -25,7 +25,7 @@ from django.contrib.auth import views as auth_views
 
 
 # Импорт представлений из приложений
-from home.views import home_view
+from home.views import home_view, root_redirect
 from login.views import login_view, verify_2fa
 from registration.views import register_view, verify_registration
 from about.views import about_view
@@ -47,8 +47,9 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('admin/', admin.site.urls),
-    path('home/', home_view, name='home'),
-    path('', home_view, name='home'),
+    # path('home/', home_view, name='home'),
+    path('home/', include('home.urls', namespace='home')),
+    path('', root_redirect, name='home'),
     path('about/', about_view, name='about'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
     path('oauth/', include('social_django.urls', namespace='social')),
