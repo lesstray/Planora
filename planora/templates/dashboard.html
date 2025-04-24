@@ -1,0 +1,54 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block content %}
+<div class="account-container">
+    <h1>Личный кабинет</h1>
+
+    <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+    </form>
+
+    <div class="account-section">
+        <h2>Безопасность</h2>
+        <a href="{% url 'change_password' %}" class="btn btn-primary">Сменить пароль</a>
+    </div>
+
+    <div class="account-section">
+        <h2>Активные сеансы</h2>
+        
+        <div class="current-session">
+            <h3>Текущая сессия</h3>
+            <p><strong>IP:</strong> {{ request.session.ip }}</p>
+            <p><strong>Браузер:</strong> {{ request.session.user_agent }}</p>
+            <p><strong>Вход выполнен:</strong> {{ request.session.auth_date }}</p>
+        </div>
+
+        {% if active_sessions %}
+        <div class="other-sessions">
+            <h3>Другие активные сеансы ({{ active_sessions|length }})</h3>
+            
+            <form method="post" action="{% url 'terminate_sessions' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Завершить все другие сеансы</button>
+            </form>
+
+            <div class="sessions-list">
+                {% for session in active_sessions %}
+                    {% if not session.is_current %}
+                    <div class="session-card">
+                        <p><strong>IP:</strong> {{ session.ip }}</p>
+                        <p><strong>Браузер:</strong> {{ session.user_agent }}</p>
+                        <p><strong>Последняя активность:</strong> {{ session.last_activity }}</p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

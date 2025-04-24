@@ -15,12 +15,24 @@
             color: #ff4444;
             margin: 5px 0 15px;
             font-size: 14px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #ffebee;
+        }
+        .success-message {
+            color: #2e7d32;
+            margin: 5px 0 15px;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e8f5e9;
         }
         .input-block {
             margin-bottom: 15px;
         }
-        input.error {
-            border-color: #ff4444;
+        .confirmation-text {
+            color: white;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -32,10 +44,11 @@
             <form method="POST" class="auth-form" id="register-form" action="{% url 'register' %}">
                 <h2 class="form-title">Регистрация</h2>
 
-                <!-- Вывод сообщений об ошибках/успехе -->
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="error-message">{{ message }}</div>
+                        <div class="{% if message.tags %}{{ message.tags }}-message{% else %}info-message{% endif %}">
+                            {{ message }}
+                        </div>
                     {% endfor %}
                 {% endif %}
 

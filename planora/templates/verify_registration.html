@@ -3,8 +3,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
-    <title>Подтверждение входа</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <title>Подтверждение регистрации</title>
     <style>
         .error-message {
             color: #ff4444;
@@ -22,17 +22,6 @@
             border-radius: 4px;
             background-color: #e8f5e9;
         }
-        .form-title {
-            color: white;
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-            background: linear-gradient(45deg, #6e45e2, #88d3ce);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block; /* Это важно для градиента */
-        }
         .input-block {
             margin-bottom: 15px;
         }
@@ -47,7 +36,7 @@
         <div class="filter"></div>
 
         <div class="form-container">
-            <h2 class="form-title">Двухфакторная аутентификация</h2>
+            <h2 class="form-title">Подтверждение регистрации</h2>
 
             {% if messages %}
                 {% for message in messages %}
@@ -66,7 +55,11 @@
 
                 {% csrf_token %}
                 <div class="button-block">
-                    <button type="submit" class="auth-button">Подтвердить</button>
+                    <button type="submit" class="auth-button">Подтвердить регистрацию</button>
+                </div>
+
+                <div class="auth-link">
+                    Не получили код? <a href="{% url 'register' %}">Попробовать снова</a>
                 </div>
             </form>
         </div>

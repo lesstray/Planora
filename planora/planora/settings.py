@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'registration',
     'login',
     'home',
-    'about'
+    'about',
+    'account'
 ]
 
 MIDDLEWARE = [
@@ -60,18 +61,22 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_otp.middleware.OTPMiddleware'
+    'django_otp.middleware.OTPMiddleware',
+    'account.middleware.SessionInfoMiddleware',
 ]
+
+# Настройки сессии
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400  # 1 день в секундах
 
 # Настройки email для отправки кодов
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'pizazaz@mail.ru'
-# EMAIL_HOST_PASSWORD = 'xkjondclnbvxoxmh' main@ohlopkoff.ru
-EMAIL_HOST_PASSWORD = '3t9R43RWUjws3Mfbhpt8'
-DEFAULT_FROM_EMAIL = 'pizazaz@mail.ru'
+EMAIL_HOST_USER = 'planora.ibks@mail.ru'
+EMAIL_HOST_PASSWORD = 'iDXp2YtYaftrpngp9ydH'
+DEFAULT_FROM_EMAIL = 'planora.ibks@mail.ru'
 
 ROOT_URLCONF = 'planora.urls'
 
@@ -102,11 +107,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'planora',
         'USER': 'postgres',
-<<<<<<< Updated upstream
-        'PASSWORD': 'postgres',
-=======
-        'PASSWORD': '9341',
->>>>>>> Stashed changes
+        'PASSWORD': 'пАрОльОтПОСТГРЕС2025_(^_^)',
         'HOST': 'localhost',
         'PORT': '5432'
     }
@@ -172,10 +173,10 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '799111395392-j09mh0mpjd6c8ejhgupkhg7s21h7r3es.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
-LOGIN_URL = '/auth/login/google-oauth2/'
+LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = '/home'
-LOGOUT_REDIRECT_URL = '/login'
+LOGIN_REDIRECT_URL = 'account_dashboard'
+LOGOUT_REDIRECT_URL = 'home'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
