@@ -1,0 +1,124 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load extras %}
+
+{% block title %}Planora – Расписание{% endblock %}
+{% block content %}
+<head>
+  <meta charset="UTF-8">  <!-- Добавьте эту строку -->
+</head>
+<div class="home-container">
+  <div class="schedule-controls">
+    <form method="POST" action="{% url 'home:schedule' %}" class="schedule-form">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="input-block">
+          <label for="groupNumber">Номер группы</label>
+          <input type="text" id="groupNumber" name="groupNumber"
+                 value="{{ selected_group }}" placeholder="Введите номер группы" required>
+        </div>
+        <div class="input-block">
+          <label for="scheduleDate">Дата</label>
+          <input type="date" id="scheduleDate" name="scheduleDate"
+                 value="{{ selected_date }}" required>
+        </div>
+      </div>
+      <button type="submit" class="auth-button">Загрузить расписание</button>
+    </form>
+  </div>
+
+  {% if schedule %}
+  <div class="week-info" style="text-align:center; margin-bottom:1em;">
+    <strong>Неделя:</strong> {{ week_start }} – {{ week_end }}
+  </div>
+
+  <div class="schedule-wrapper">
+
+    {# — ПН–СР — #}
+    <div class="schedule-row first-row">
+      {% for day_key in day_order|slice:":3" %}
+        {% with day=day_key|split:", "|first date=day_key|split:", "|last lessons=schedule|dict_get:day_key %}
+        {% with start_time=time_slot|split:"–"|first end_time=time_slot|split:"–"|last %}
+        <div class="day-column">
+          <div class="day-header">{{ day }}, {{ date }}</div>
+              {% for time in time_slots %}
+                {% with les=lessons|dict_get:time %}
+                <div class="schedule-line">
+                  <textarea>{% spaceless %}
+                    {% if les %}
+                      {{ les.start_time }}–{{ les.end_time }} {{ les.subject }}
+                    {% else %}
+                      {{ start_time }}–{{ end_time }}
+                    {% endif %}
+                  {% endspaceless %}</textarea>
+                </div>
+                {% endwith %}
+              {% endfor %}
+        </div>
+        {% endwith %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+    {# — ЧТ–СБ — #}
+    <div class="schedule-row second-row">
+      {% for day_key in day_order|slice:"3:6" %}
+        {% with day=day_key|split:", "|first date=day_key|split:", "|last lessons=schedule|dict_get:day_key %}
+        <div class="day-column">
+          <div class="day-header">{{ day }}, {{ date }}</div>
+            {% for time in time_slots %}
+              {% with les=lessons|dict_get:time %}
+              <div class="schedule-line">
+                <textarea>{% spaceless %}
+                  {% if les %}
+                    {{ les.start_time }}–{{ les.end_time }} {{ les.subject }}
+                  {% else %}
+                    {{ time }}
+                  {% endif %}
+                {% endspaceless %}</textarea>
+              </div>
+              {% endwith %}
+            {% endfor %}
+        </div>
+        {% endwith %}
+      {% endfor %}
+      {# Принудительно добавляем СБ, если её нет #}
+      <!-- {% if "Суббота" not in day_order %}
+        <div class="day-column">
+          <div class="day-header">Суббота, {{ saturday_date }}</div>
+          {% for time in time_slots %}
+            <div class="schedule-line">
+              <textarea>{{ time }}</textarea>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %} -->
+    </div>
+    {# — ВС — #}
+    <div class="schedule-row third-row">
+      {% for day_key in day_order|slice:"6:7" %}
+        {% with day=day_key|split:", "|first date=day_key|split:", "|last lessons=schedule|dict_get:day_key %}
+        <div class="day-column">
+          <div class="day-header">{{ day }}, {{ date }}</div>
+            {% for time in time_slots %}
+              {% with les=lessons|dict_get:time %}
+              <div class="schedule-line">
+                <textarea>{% spaceless %}
+                  {% if les %}
+                    {{ les.start_time }}–{{ les.end_time }} {{ les.subject }}
+                  {% else %}
+                    {{ time }}
+                  {% endif %}
+                {% endspaceless %}</textarea>
+              </div>
+              {% endwith %}
+            {% endfor %}
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

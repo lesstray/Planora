@@ -1,8 +1,100 @@
 {% extends 'layout.html' %}
+{% load static %}
 
-{% block title %}Prostite{% endblock %}
+{% block title %}Planora - Расписание{% endblock %}
 
 {% block content %}
-    <h1>Здесь будет</h1>
-    <p>планировщик задач!</p>
+<div class="home-container">
+    <div class="schedule-controls">
+        <form method="POST" class="schedule-form">
+            <div class="form-row">
+                <div class="input-block">
+                    <label for="groupNumber">Номер группы</label>
+                    <input type="text" id="groupNumber" name="groupNumber" placeholder="Введите номер группы" required>
+                </div>
+
+                <div class="input-block">
+                    <label for="scheduleDate">Дата</label>
+                    <input type="date" id="scheduleDate" name="scheduleDate" required>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-button">Загрузить расписание</button>
+        </form>
+    </div>
+
+    <div class="schedule-wrapper">
+        <!-- Первая строка: Пн-Ср -->
+        <div class="schedule-row first-row">
+            <div class="day-column monday">
+                <div class="day-header">Понедельник</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="day-column tuesday">
+                <div class="day-header">Вторник</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="day-column wednesday">
+                <div class="day-header">Среда</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Вторая строка: Чт-Сб -->
+        <div class="schedule-row second-row">
+            <div class="day-column thursday">
+                <div class="day-header">Четверг</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="day-column friday">
+                <div class="day-header">Пятница</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="day-column saturday">
+                <div class="day-header">Суббота</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Третья строка: Вс -->
+        <div class="schedule-row third-row">
+            <div class="day-column sunday">
+                <div class="day-header">Воскресенье</div>
+                {% for i in "1234567890" %}
+                <div class="schedule-line">
+                    <textarea placeholder="Пара {{ forloop.counter }}"></textarea>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

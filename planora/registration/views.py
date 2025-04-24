@@ -35,23 +35,23 @@ def register_view(request):
     """
     if request.method == "POST":
         # # Проверка CAPTCHA
-        # recaptcha_token = request.POST.get('g-recaptcha-response')
-        # if not recaptcha_token:
-        #     messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
-        #     return render(request, 'register.html', {
-        #         'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
-        #         'username': request.POST.get('username', ''),
-        #         'email': request.POST.get('email', ''),
-        #         'full_name': request.POST.get('full_name', '')
-        #     })
-        # if not verify_recaptcha(recaptcha_token):
-        #     messages.error(request, 'Ошибка проверки reCAPTCHA')
-        #     return render(request, 'register.html', {
-        #         'captcha_error': 'Проверка reCAPTCHA не пройдена',
-        #         'username': request.POST.get('username', ''),
-        #         'email': request.POST.get('email', ''),
-        #         'full_name': request.POST.get('full_name', '')
-        #     })
+        recaptcha_token = request.POST.get('g-recaptcha-response')
+        if not recaptcha_token:
+            messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+            return render(request, 'register.html', {
+                'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
+                'username': request.POST.get('username', ''),
+                'email': request.POST.get('email', ''),
+                'full_name': request.POST.get('full_name', '')
+            })
+        if not verify_recaptcha(recaptcha_token):
+            messages.error(request, 'Ошибка проверки reCAPTCHA')
+            return render(request, 'register.html', {
+                'captcha_error': 'Проверка reCAPTCHA не пройдена',
+                'username': request.POST.get('username', ''),
+                'email': request.POST.get('email', ''),
+                'full_name': request.POST.get('full_name', '')
+            })
 
         # Получение данных
         username = request.POST.get('username').strip()
