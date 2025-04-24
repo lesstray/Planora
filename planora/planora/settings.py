@@ -102,7 +102,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'planora',
         'USER': 'postgres',
+<<<<<<< Updated upstream
         'PASSWORD': 'postgres',
+=======
+        'PASSWORD': '9341',
+>>>>>>> Stashed changes
         'HOST': 'localhost',
         'PORT': '5432'
     }
