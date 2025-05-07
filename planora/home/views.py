@@ -142,7 +142,7 @@ def _make_time_slots(start="08:00", end="20:00", step_hours=2):
 
 
 month_map = {
-    "янв": "Jan", "фев": "Feb", "мар": "Mar", "апр": "Apr", "май": "May", "июн": "Jun",
+    "янв": "Jan", "фев": "Feb", "мар": "Mar", "апр": "Apr", "мая": "May", "июн": "Jun",
     "июл": "Jul", "авг": "Aug", "сен": "Sep", "окт": "Oct", "ноя": "Nov", "дек": "Dec"
 }
 

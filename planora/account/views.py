@@ -29,7 +29,7 @@ def change_password(request: HttpRequest) -> HttpResponse:
             # Обновляем сессию, чтобы пользователь не разлогинился
             update_session_auth_hash(request, user)
             messages.success(request, 'Пароль успешно изменён!')
-            return redirect('account_dashboard')
+            return redirect('dashboard')
     else:
         form = PasswordChangeForm(request.user)
 
@@ -44,7 +44,7 @@ def terminate_sessions(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         terminate_other_sessions(request)
         messages.success(request, 'Все другие сеансы были завершены!')
-    return redirect('account_dashboard')
+    return redirect('dashboard')
 
 
 def get_active_sessions(user, current_session_key: str) -> List[Dict[str, Any]]:
