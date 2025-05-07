@@ -15,12 +15,72 @@ body {
     padding: 20px;
 }
 
-.home-container {
+/* Общие контейнеры */
+.home-container, .account-container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Форма управления */
+/* Стили для личного кабинета */
+.account-container {
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.account-container h1 {
+    color: #88d3ce;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.2rem;
+}
+
+.account-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.account-section h2 {
+    color: #6e45e2;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.current-session, .other-sessions {
+    margin-bottom: 25px;
+}
+
+.current-session h3, .other-sessions h3 {
+    color: #88d3ce;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.session-card {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 3px solid #6e45e2;
+}
+
+.session-card p {
+    margin: 8px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.sessions-list {
+    margin-top: 15px;
+}
+
+/* Форма управления расписанием */
 .schedule-controls {
     margin-bottom: 30px;
 }
@@ -71,10 +131,10 @@ body {
 .schedule-row {
     display: flex;
     gap: 20px;
-    align-items: stretch; /* Выравнивание по высоте */
+    align-items: stretch;
 }
 
-/* Стили для каждого дня */
+/* Стили для дней недели */
 .day-column {
     background: rgba(255, 255, 255, 0.03);
     padding: 20px;
@@ -83,14 +143,13 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 100%; /* Занимает всю доступную высоту */
+    min-height: 100%;
 }
 
-/* Особые стили для выравнивания */
 .day-column.monday,
 .day-column.tuesday,
 .day-column.wednesday {
-    height: 100%; /* Фиксированная высота как у понедельника */
+    height: 100%;
 }
 
 .day-header {
@@ -118,33 +177,15 @@ body {
     font-size: 14px;
 }
 
-/* Цветовые акценты для дней */
-.day-column.monday {
-    border-left: 4px solid #6e45e2;
-}
-.day-column.tuesday {
-    border-left: 4px solid #88d3ce;
-}
-.day-column.wednesday {
-    border-left: 4px solid #ff9a9e;
-}
-.day-column.thursday {
-    border-left: 4px solid #fbc2eb;
-}
-.day-column.friday {
-    border-left: 4px solid #a18cd1;
-}
-.day-column.saturday {
-    border-left: 4px solid #fad0c4;
-}
-.day-column.sunday {
-    border-left: 4px solid #ffecd2;
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-}
+/* Цветовые акценты */
+.day-column.monday { border-left: 4px solid #6e45e2; }
+.day-column.tuesday { border-left: 4px solid #88d3ce; }
+.day-column.wednesday { border-left: 4px solid #ff9a9e; }
+.day-column.thursday { border-left: 4px solid #fbc2eb; }
+.day-column.friday { border-left: 4px solid #a18cd1; }
+.day-column.saturday { border-left: 4px solid #fad0c4; }
+.day-column.sunday { border-left: 4px solid #ffecd2; width: 100%; max-width: 800px; margin: 0 auto; }
 
-/* Цвета заголовков */
 .day-column.monday .day-header { color: #6e45e2; }
 .day-column.tuesday .day-header { color: #88d3ce; }
 .day-column.wednesday .day-header { color: #ff9a9e; }
@@ -153,24 +194,82 @@ body {
 .day-column.saturday .day-header { color: #fad0c4; }
 .day-column.sunday .day-header { color: #ffecd2; }
 
-/* Кнопка */
+/* Кнопки */
+.btn, .auth-button, .btn-logout, .btn-schedule {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
 .auth-button {
     background: linear-gradient(45deg, #6e45e2, #88d3ce);
     color: white;
-    border: none;
     padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
     display: block;
     margin: 0 auto;
-    font-weight: 500;
-    transition: all 0.3s ease;
 }
 
-.auth-button:hover {
+.btn-primary {
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    color: white;
+}
+
+.btn-logout {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+    display: block;
+    margin: 0 auto 30px;
+}
+
+.btn-schedule {
+    background: linear-gradient(45deg, #4e54c8, #8f94fb);
+    color: white;
+    padding: 12px 25px;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+/* Эффекты при наведении */
+.auth-button:hover, .btn-primary:hover {
+    background: linear-gradient(45deg, #88d3ce, #6e45e2);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(45deg, #ff4b2b, #ff416c);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
+}
+
+.btn-logout:hover {
+    background: rgba(255, 107, 107, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-schedule:hover {
+    background: linear-gradient(45deg, #8f94fb, #4e54c8);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
+}
+
+/* Иконки */
+.fas {
+    margin-right: 8px;
 }
 
 /* Адаптивность */
@@ -195,5 +294,15 @@ body {
 
     .form-row {
         flex-direction: column;
+    }
+
+    .account-container {
+        padding: 20px;
+    }
+
+    .btn, .auth-button, .btn-logout, .btn-schedule {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
     }
 }
