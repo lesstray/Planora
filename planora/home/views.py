@@ -1,15 +1,18 @@
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework import generics
 from rest_framework.decorators import action
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework.views import APIView
 
-from .models import Group, Lesson, StudentPlan, AttendanceStats
+
+from .models import Task, Group
 from .serializers import (
+    TaskSerializer,
     GroupSerializer,
-    LessonSerializer,
-    StudentPlanSerializer,
-    AttendanceStatsSerializer,
 )
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
@@ -25,110 +28,91 @@ from .ruz_parser import get_schedule
 
 User = get_user_model()
 
+# views.py
+class TaskListCreate(APIView):
+    # Отдельный класс для создания
+    @swagger_auto_schema(
+        request_body=TaskSerializer,
+        responses={
+            201: TaskSerializer,
+            400: "Не получилось создать задачу"
+        },
+        operation_description="Создать новую задачу",
+        tags=['Tasks']
+    )
+    def post(self, request):
+        serializer = TaskSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class GroupViewSet(viewsets.ModelViewSet):
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAdminUser]
+
+class GroupStatistic(APIView):
+    @swagger_auto_schema(
+        operation_id='group_detail',
+        responses={
+            200: GroupSerializer,  # Используем класс сериализатора
+            404: "Группа не найдена"
+        },
+        operation_description="Получить статистику по группе",
+        tags=['Groups']
+    )
+    def get(self, request, pk):
+        try:
+            group = Group.objects.get(pk=pk)
+            serializer = GroupSerializer(group)  # Создаём экземпляр
+            return Response(serializer.data)
+        except Group.DoesNotExist:
+            return Response(
+                {"error": "Группа не найдена"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+   
+class TaskDetail(APIView):
+    @swagger_auto_schema(
+        operation_id='task_detail',
+        operation_description="Получить задачу по ID",
+        responses={
+            200: TaskSerializer,
+            404: "Задача не найдена"
+        },
+        tags=['Tasks']
+    )
+    def get(self, request, pk):
+        try:
+            task = Task.objects.get(pk=pk)
+            serializer = TaskSerializer(task)
+            return Response(serializer.data)
+        except Task.DoesNotExist:
+            return Response(
+                {"error": "Задача не найдена"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     @swagger_auto_schema(
-        operation_description="Получить список всех групп",
-        responses={200: GroupSerializer(many=True)},
+        operation_id='task_remove',
+        operation_description="Удалить задачу по ID",
+        responses={
+            204: "Удалена",  # 204 - стандартный код для успешного удаления
+            404: "Задача не найдена"
+        },
+        tags=['Tasks']
     )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_description="Создать новую группу (только для админов)",
-        request_body=GroupSerializer,
-        responses={201: GroupSerializer()},
-    )
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-
-class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="Получить список всех пар",
-        manual_parameters=[
-            openapi.Parameter(
-                name='group',
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
-                description='Фильтр по группе (например, `?group=1234`)',
-            ),
-        ],
-        responses={200: LessonSerializer(many=True)},
-    )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_description="Отменить пару (для преподавателей)",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'reason': openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description='Причина отмены',
-                ),
-            },
-        ),
-        responses={200: "Lesson cancelled"},
-    )
-    @action(detail=True, methods=['post'])
-    def cancel(self, request, pk=None):
-        lesson = self.get_object()
-        lesson.is_cancelled = True
-        lesson.cancellation_reason = request.data.get('reason', '')
-        lesson.save()
-        return Response({'status': 'Lesson cancelled'})
-
-
-class StudentPlanViewSet(viewsets.ModelViewSet):
-    queryset = StudentPlan.objects.all()
-    serializer_class = StudentPlanSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="Создать план для студента",
-        request_body=StudentPlanSerializer,
-        responses={201: StudentPlanSerializer()},
-    )
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(student=request.user)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers,
-        )
-
-    @swagger_auto_schema(
-        operation_description="Обновить план студента",
-        request_body=StudentPlanSerializer,
-        responses={200: StudentPlanSerializer()},
-    )
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-
-class AttendanceStatsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = AttendanceStats.objects.all()
-    serializer_class = AttendanceStatsSerializer
-
-    @swagger_auto_schema(
-        operation_description="Получить статистику посещаемости",
-        responses={200: AttendanceStatsSerializer(many=True)},
-    )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+    def delete(self, request, pk):
+        try:
+            task = Task.objects.delete(pk=pk)
+            task.delete()  # Вот здесь фактическое удаление
+            return Response(
+                {"status": "OK"},  # Добавлена запятая
+                status=status.HTTP_204_NO_CONTENT  # 204 вместо 200
+            )
+        except Task.DoesNotExist:
+            return Response(
+                {"error": "Задача не найдена"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     @swagger_auto_schema(
         operation_description="Аналитика посещаемости (графики)",
