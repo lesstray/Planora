@@ -7,6 +7,7 @@
 <div class="home-container">
     <div class="schedule-controls">
         <form method="POST" class="schedule-form">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="input-block">
                     <label for="groupNumber">Номер группы</label>
