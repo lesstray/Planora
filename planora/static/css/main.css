@@ -1,26 +1,29 @@
-/* Основные стили */
+/* main.css */
+
+/* 1. Общее оформление страницы */
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap');
 
 * {
-    font-family: 'Rubik', sans-serif;
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rubik', sans-serif;
+    color: #FFFFFF;
 }
 
 body {
     background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: white;
     min-height: 100vh;
     padding: 20px;
+    line-height: 1.5;
 }
 
+/* 2. Контейнер и форма управления */
 .home-container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Форма управления */
 .schedule-controls {
     margin-bottom: 30px;
 }
@@ -30,8 +33,8 @@ body {
     backdrop-filter: blur(10px);
     padding: 25px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .form-row {
@@ -57,68 +60,71 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    color: white;
+    color: #FFFFFF;
     font-size: 16px;
 }
 
-/* Сетка расписания */
+/* Кнопка «Загрузить расписание» */
+.auth-button {
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+/* 3. Информация о неделе */
+.week-info {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+/* 4. Сетка расписания */
 .schedule-wrapper {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
+/* Ряд: три или один столбец */
 .schedule-row {
     display: flex;
     gap: 20px;
-    align-items: stretch; /* Выравнивание по высоте */
 }
 
-/* Стили для каждого дня */
+/* 5. Колонки с днями */
 .day-column {
     background: rgba(255, 255, 255, 0.03);
-    padding: 20px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 100%; /* Занимает всю доступную высоту */
 }
 
-/* Особые стили для выравнивания */
-.day-column.monday,
-.day-column.tuesday,
-.day-column.wednesday {
-    height: 100%; /* Фиксированная высота как у понедельника */
-}
-
+/* Заголовок дня */
 .day-header {
     text-align: center;
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     font-weight: 500;
+    font-size: 18px;
 }
 
-.schedule-line {
-    margin: 10px 0;
-    flex-grow: 1;
-}
-
-.schedule-line textarea {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    resize: vertical;
-    min-height: 60px;
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-/* Цветовые акценты для дней */
+/* Цветовая полоса слева у каждого дня */
 .day-column.monday {
     border-left: 4px solid #6e45e2;
 }
@@ -139,12 +145,9 @@ body {
 }
 .day-column.sunday {
     border-left: 4px solid #ffecd2;
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
 }
 
-/* Цвета заголовков */
+/* Цвет заголовка дня (совпадает с цветом полосы) */
 .day-column.monday .day-header { color: #6e45e2; }
 .day-column.tuesday .day-header { color: #88d3ce; }
 .day-column.wednesday .day-header { color: #ff9a9e; }
@@ -153,34 +156,144 @@ body {
 .day-column.saturday .day-header { color: #fad0c4; }
 .day-column.sunday .day-header { color: #ffecd2; }
 
-/* Кнопка */
-.auth-button {
-    background: linear-gradient(45deg, #6e45e2, #88d3ce);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 16px;
+/* 6. Строки с парами */
+.schedule-line {
+    margin: 8px 0;
+    flex-grow: 1;
     cursor: pointer;
-    display: block;
-    margin: 0 auto;
-    font-weight: 500;
-    transition: all 0.3s ease;
 }
 
-.auth-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+.schedule-line .line-content {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px;
+    min-height: 60px;
+    color: #FFFFFF;
+    overflow: hidden;
+    transition: background 0.2s;
 }
 
-/* Адаптивность */
+.schedule-line .line-content:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Текст внутри ячейки */
+.schedule-line .line-content div {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.schedule-line .line-content div strong {
+    font-size: 15px;
+}
+
+/* 7. Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    background: #1e1e2f;
+    margin: 5% auto;
+    padding: 25px;
+    width: 60%;
+    max-width: 700px;
+    border-radius: 12px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 22px;
+    text-align: center;
+}
+
+/* Крестик закрытия */
+.close {
+    position: absolute;
+    right: 15px;
+    top: 12px;
+    font-size: 26px;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+/* Текст внутри модалки */
+#modal-body p {
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+/* Поле заметок */
+#modal-body textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #FFFFFF;
+    resize: vertical;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* Поле для вложений */
+#modal-body input[type="file"] {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Скрытый класс */
+.hidden {
+    display: none;
+}
+
+
+/* Поисковое поле */
+.search-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#search-input {
+  width: 60%;
+  max-width: 600px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  font-size: 16px;
+}
+
+/* Подсветка найденного */
+mark {
+  background-color: rgba(255, 235, 59, 0.6);
+  color: #000;
+  border-radius: 2px;
+}
+
+
+/* 8. Адаптивность */
 @media (max-width: 1200px) {
     .schedule-row {
         flex-wrap: wrap;
     }
 
     .day-column {
-        flex: 0 0 calc(33.333% - 15px);
+        flex: 0 0 calc(33.333% - 20px);
+        margin-bottom: 20px;
     }
 
     .day-column.sunday {

@@ -4,12 +4,6 @@ from . import views
 
 app_name = 'home'
 
-# Создаем router и регистрируем ViewSets
-router = DefaultRouter()
-router.register(r'groups', views.GroupViewSet, basename='group')
-router.register(r'lessons', views.LessonViewSet, basename='lesson')
-router.register(r'plans', views.StudentPlanViewSet, basename='studentplan')
-router.register(r'stats', views.AttendanceStatsViewSet, basename='attendancestats')
 
 urlpatterns = [
     # API endpoints

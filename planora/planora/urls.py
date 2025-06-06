@@ -24,7 +24,7 @@ from rest_framework import permissions
 
 
 # Импорт представлений из приложений
-from home.views import home_view, root_redirect
+from home.views import home_view, root_redirect, schedule
 from login.views import login_view, verify_2fa
 from registration.views import register_view
 from about.views import about_view
@@ -46,7 +46,8 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('admin/', admin.site.urls),
     # path('home/', home_view, name='home'),
-    path('home/', include('home.urls', namespace='home')),
+    # path('home/', include('home.urls', namespace='home')),
+    path('home/', schedule, name='schedule'),
     path('', root_redirect, name='home'),
     path('about/', about_view, name='about'),
     path('logout/', logout, {'next_page': settings.LOGOUT_REDIRECT_URL}, name='logout'),
