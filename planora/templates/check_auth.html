@@ -1,0 +1,11 @@
+{% if user.is_authenticated %}
+<div class="user-info-floating">
+    <p><strong>✅ {{ user.full_name }}</strong></p>
+    <p><a href="{% url 'logout' %}" class="logout-link">Выйти</a></p>
+</div>
+{% else %}
+<div class="user-info-floating">
+    <p><strong>❌ Ты не авторизован</strong></p>
+    <p><a href="{% url 'register' %}" class="auth-button">Регистрация</a></p>
+</div>
+{% endif %}

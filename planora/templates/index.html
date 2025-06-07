@@ -2,9 +2,17 @@
 {% load static %}
 
 {% block title %}Planora - Расписание{% endblock %}
-
 {% block content %}
+
 <div class="home-container">
+    <div class="navigation-buttons">
+        <a href="{% url 'dashboard' %}" class="nav-button dashboard-button">
+            <i class="fas fa-tachometer-alt"></i> Личный кабинет
+        </a>
+        <a href="{% url 'about' %}" class="nav-button about-button">
+            <i class="fas fa-info-circle"></i> О проекте
+        </a>
+    </div>
     <div class="schedule-controls">
         <form method="POST" class="schedule-form">
             {% csrf_token %}
@@ -21,12 +29,15 @@
             </div>
 
             <button type="submit" class="auth-button">Загрузить расписание</button>
+
         </form>
     </div>
+
 
     <div class="schedule-wrapper">
         <!-- Первая строка: Пн-Ср -->
         <div class="schedule-row first-row">
+            <div class="day-column monday">
             <div class="day-column monday">
                 <div class="day-header">Понедельник</div>
                 {% for i in "1234567890" %}
@@ -95,6 +106,7 @@
                 </div>
                 {% endfor %}
             </div>
+        </div>
         </div>
     </div>
 </div>

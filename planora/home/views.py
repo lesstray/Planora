@@ -123,7 +123,7 @@ class TaskDetail(APIView):
         return Response({'data': 'Analytics here'})
 
 def root_redirect(request):
-    return HttpResponseRedirect('/register')
+    return HttpResponseRedirect('/about')
 
 def home_view(request):
     return render(request, 'index.html')
@@ -145,6 +145,7 @@ from django.shortcuts import render
 import dateparser
 from .ruz_parser import get_schedule
 from datetime import datetime, timedelta
+
 
 
 def schedule(request):
