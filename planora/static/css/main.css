@@ -1,26 +1,90 @@
-/* Основные стили */
+/* main.css */
+
+/* 1. Общее оформление страницы */
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap');
 
 * {
-    font-family: 'Rubik', sans-serif;
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rubik', sans-serif;
+    color: #FFFFFF;
 }
 
 body {
     background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: white;
     min-height: 100vh;
     padding: 20px;
+    line-height: 1.5;
 }
 
-.home-container {
+/* Общие контейнеры */
+.home-container, .account-container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Форма управления */
+/* Стили для личного кабинета */
+.account-container {
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.account-container h1 {
+    color: #88d3ce;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.2rem;
+}
+
+.account-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.account-section h2 {
+    color: #6e45e2;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.current-session, .other-sessions {
+    margin-bottom: 25px;
+}
+
+.current-session h3, .other-sessions h3 {
+    color: #88d3ce;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.session-card {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 3px solid #6e45e2;
+}
+
+.session-card p {
+    margin: 8px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.sessions-list {
+    margin-top: 15px;
+}
+
+/* Форма управления расписанием */
+
 .schedule-controls {
     margin-bottom: 30px;
 }
@@ -30,8 +94,8 @@ body {
     backdrop-filter: blur(10px);
     padding: 25px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .form-row {
@@ -57,48 +121,107 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    color: white;
+    color: #FFFFFF;
     font-size: 16px;
 }
 
-/* Сетка расписания */
-.schedule-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+/* Кнопка «Загрузить расписание» */
+.auth-button {
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
+.auth-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+/* 3. Информация о неделе */
+.week-info {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5em 2em; /* чтобы вокруг текста был отступ */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* Общие стили для обеих стрелок */
+.prev-week,
+.next-week {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font-size: 24px;
+  font-weight: 500;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(110,69,226,0.8), rgba(136,211,206,0.8));
+  color: #FFF;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Слева и справа от центра */
+.prev-week {
+  margin-right: 1em;
+}
+.next-week {
+  margin-left: 1em;
+}
+
+/* Эффект при наведении */
+.prev-week:hover,
+.next-week:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* 5. Ряд: три или один столбец */
 .schedule-row {
     display: flex;
     gap: 20px;
-    align-items: stretch; /* Выравнивание по высоте */
+    align-items: stretch;
 }
 
-/* Стили для каждого дня */
 .day-column {
     background: rgba(255, 255, 255, 0.03);
-    padding: 20px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 100%; /* Занимает всю доступную высоту */
+    min-height: 100%;
 }
 
-/* Особые стили для выравнивания */
+/* Специфичные стили для первых трёх дней недели */
 .day-column.monday,
 .day-column.tuesday,
 .day-column.wednesday {
-    height: 100%; /* Фиксированная высота как у понедельника */
+    height: 100%;
 }
 
+/* Заголовок дня */
 .day-header {
     text-align: center;
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     font-weight: 500;
+    font-size: 18px;
 }
 
 .schedule-line {
@@ -118,7 +241,16 @@ body {
     font-size: 14px;
 }
 
-/* Цветовые акценты для дней */
+/* Цветовые акценты */
+.day-column.monday { border-left: 4px solid #6e45e2; }
+.day-column.tuesday { border-left: 4px solid #88d3ce; }
+.day-column.wednesday { border-left: 4px solid #ff9a9e; }
+.day-column.thursday { border-left: 4px solid #fbc2eb; }
+.day-column.friday { border-left: 4px solid #a18cd1; }
+.day-column.saturday { border-left: 4px solid #fad0c4; }
+.day-column.sunday { border-left: 4px solid #ffecd2; width: 100%; max-width: 800px; margin: 0 auto; }
+
+/* Цветовая полоса слева у каждого дня */
 .day-column.monday {
     border-left: 4px solid #6e45e2;
 }
@@ -139,12 +271,9 @@ body {
 }
 .day-column.sunday {
     border-left: 4px solid #ffecd2;
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
 }
 
-/* Цвета заголовков */
+/* Цвет заголовка дня (совпадает с цветом полосы) */
 .day-column.monday .day-header { color: #6e45e2; }
 .day-column.tuesday .day-header { color: #88d3ce; }
 .day-column.wednesday .day-header { color: #ff9a9e; }
@@ -153,34 +282,290 @@ body {
 .day-column.saturday .day-header { color: #fad0c4; }
 .day-column.sunday .day-header { color: #ffecd2; }
 
-/* Кнопка */
+/* Кнопки */
+.btn, .auth-button, .btn-logout, .btn-schedule {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
 .auth-button {
     background: linear-gradient(45deg, #6e45e2, #88d3ce);
     color: white;
-    border: none;
     padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
     display: block;
     margin: 0 auto;
-    font-weight: 500;
-    transition: all 0.3s ease;
 }
 
-.auth-button:hover {
+.btn-primary {
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    color: white;
+}
+
+.btn-logout {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+    display: block;
+    margin: 0 auto 30px;
+}
+
+.btn-schedule {
+    background: linear-gradient(45deg, #4e54c8, #8f94fb);
+    color: white;
+    padding: 12px 25px;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+/* Эффекты при наведении */
+.auth-button:hover, .btn-primary:hover {
+    background: linear-gradient(45deg, #88d3ce, #6e45e2);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
 }
 
+.btn-danger:hover {
+    background: linear-gradient(45deg, #ff4b2b, #ff416c);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
+}
+
+.btn-logout:hover {
+    background: rgba(255, 107, 107, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-schedule:hover {
+    background: linear-gradient(45deg, #8f94fb, #4e54c8);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
+}
+
+/* Иконки */
+.fas {
+    margin-right: 8px;
+}
+
+/* Навигационные кнопки */
+.navigation-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.nav-button {
+    padding: 12px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+}
+
+.nav-button i {
+    margin-right: 10px;
+}
+
+.dashboard-button {
+    background: linear-gradient(45deg, #6e45e2, #8f94fb);
+    color: white;
+    border: none;
+}
+
+.dashboard-button:hover {
+    background: linear-gradient(45deg, #8f94fb, #6e45e2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+.about-button {
+    background: linear-gradient(45deg, #4b6cb7, #182848);
+    color: white;
+    border: none;
+}
+
+.about-button:hover {
+    background: linear-gradient(45deg, #182848, #4b6cb7);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(27, 40, 72, 0.4);
+}
+
+/* Адаптивность для кнопок */
+@media (max-width: 768px) {
+    .navigation-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nav-button {
+        width: 100%;
+    }
+}
+
 /* Адаптивность */
+/* 6. Строки с парами */
+.schedule-line {
+    margin: 8px 0;
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.schedule-line .line-content {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px;
+    min-height: 60px;
+    color: #FFFFFF;
+    overflow: hidden;
+    transition: background 0.2s;
+}
+
+.schedule-line .line-content:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Текст внутри ячейки */
+.schedule-line .line-content div {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.schedule-line .line-content div strong {
+    font-size: 15px;
+}
+
+/* 7. Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    background: #1e1e2f;
+    margin: 5% auto;
+    padding: 25px;
+    width: 60%;
+    max-width: 700px;
+    border-radius: 12px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 22px;
+    text-align: center;
+}
+
+/* Крестик закрытия */
+.close {
+    position: absolute;
+    right: 15px;
+    top: 12px;
+    font-size: 26px;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+/* Текст внутри модалки */
+#modal-body p {
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+/* Поле заметок */
+#modal-body textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #FFFFFF;
+    resize: vertical;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* Поле для вложений */
+#modal-body input[type="file"] {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Скрытый класс */
+.hidden {
+    display: none;
+}
+
+
+/* Поисковое поле */
+.search-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#search-input {
+  width: 60%;
+  max-width: 600px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  font-size: 16px;
+}
+
+/* Подсветка найденного */
+mark {
+  background-color: rgba(255, 235, 59, 0.6);
+  color: #000;
+  border-radius: 2px;
+}
+
+.week-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px; /* или ваш отступ */
+}
+
+/* 8. Адаптивность */
 @media (max-width: 1200px) {
     .schedule-row {
         flex-wrap: wrap;
     }
 
     .day-column {
-        flex: 0 0 calc(33.333% - 15px);
+        flex: 0 0 calc(33.333% - 20px);
+        margin-bottom: 20px;
     }
 
     .day-column.sunday {
@@ -196,4 +581,314 @@ body {
     .form-row {
         flex-direction: column;
     }
+
+    .account-container {
+        padding: 20px;
+    }
+
+    .btn, .auth-button, .btn-logout, .btn-schedule {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
+    }
 }
+
+/* Шапка */
+.main-header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header-btn {
+    padding: 12px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    color: white;
+    border: 1px solid transparent;
+}
+
+.header-btn i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+/* Кнопка "О нас" */
+.about-btn {
+    background: linear-gradient(45deg, #4b6cb7, #182848);
+}
+
+.about-btn:hover {
+    background: linear-gradient(45deg, #182848, #4b6cb7);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(27, 40, 72, 0.4);
+}
+
+/* Кнопка "Личный кабинет" */
+.dashboard-btn {
+    background: linear-gradient(45deg, #6e45e2, #8f94fb);
+}
+
+.dashboard-btn:hover {
+    background: linear-gradient(45deg, #8f94fb, #6e45e2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+/* Кнопка "Расписание" */
+.schedule-btn {
+    background: linear-gradient(45deg, #4e54c8, #8f94fb);
+}
+
+.schedule-btn:hover {
+    background: linear-gradient(45deg, #8f94fb, #4e54c8);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
+}
+
+/* Адаптивность шапки */
+@media (max-width: 768px) {
+    .header-nav {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 15px;
+    }
+}
+
+/* Основное содержимое */
+.main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Стили для страницы "О проекте" */
+.about-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.about-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.about-header h1 {
+    color: #6e45e2;
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    color: #88d3ce;
+}
+
+.about-section {
+    margin-bottom: 40px;
+}
+
+.about-section h2 {
+    color: #6e45e2;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .features {
+        grid-template-columns: 1fr;
+    }
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-card h3 {
+    color: #88d3ce;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.feature-card ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.feature-card li {
+    margin-bottom: 15px;
+    padding-left: 30px;
+    position: relative;
+    line-height: 1.6;
+}
+
+.feature-card li:before {
+    content: "•";
+    color: #6e45e2;
+    font-size: 1.5rem;
+    position: absolute;
+    left: 0;
+    top: -3px;
+}
+
+.kill-feature {
+    background: rgba(110, 69, 226, 0.1);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 40px;
+    border-left: 4px solid #6e45e2;
+}
+
+.kill-feature h2 {
+    color: #ff6b6b;
+    margin-bottom: 15px;
+}
+
+.developers-section {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.developers-section h2 {
+    color: #6e45e2;
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.developers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.developer-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.developer-card:hover {
+    background: rgba(110, 69, 226, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(110, 69, 226, 0.2);
+}
+
+.developer-card i {
+    font-size: 1.2rem;
+    color: #88d3ce;
+}
+.user-info-box {
+    margin-top: 40px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    text-align: center;
+}
+
+.user-info-box h2 {
+    font-size: 1.8rem;
+    color: #88d3ce;
+    margin-bottom: 15px;
+}
+
+.user-info-box p {
+    font-size: 1.1rem;
+    margin: 8px 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+.user-info-floating {
+    position: fixed;
+    top: 130px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.07); /* чуть более заметный фон */
+    backdrop-filter: blur(10px); /* стеклянный эффект */
+    padding: 20px 24px;
+    border-radius: 24px; /* умеренно круглые углы */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    font-size: 15px;
+    width: 320px;
+    z-index: 1000;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.user-info-floating h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #4facfe, #00f2fe); /* синий градиент */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+.user-info-floating p {
+    margin: 6px 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.user-info-floating a {
+    text-decoration: none;
+    color: #6ec1e4;
+    font-weight: 500;
+    transition: 0.2s ease;
+}
+
+.user-info-floating a:hover {
+    text-decoration: underline;
+    color: #a3d9ff;
+}
+
+.logout-link {
+    color: #ff4e4e;
+    font-weight: 600;
+}
+
+

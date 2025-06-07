@@ -30,6 +30,7 @@ from login.views import login_view, verify_2fa
 from registration.views import register_view, verify_registration
 from about.views import about_view
 from account.views import account_dashboard, change_password, terminate_sessions
+from statistic.views import statistics_view
 
 
 schema_view = get_schema_view(
@@ -47,9 +48,9 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('admin/', admin.site.urls),
-    path('home/', home_view, name='home'),
-    path('schedule/', schedule, name='schedule'),
+    # path('home/', home_view, name='home'),
     # path('home/', include('home.urls', namespace='home')),
+    path('home/', schedule, name='schedule'),
     path('', root_redirect, name='home'),
     path('about/', about_view, name='about'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
@@ -62,4 +63,5 @@ urlpatterns = [
     path('dashboard', account_dashboard, name='dashboard'),
     path('change-password/', change_password, name='change_password'),
     path('terminate-sessions/', terminate_sessions, name='terminate_sessions'),
+    path('statistic', statistics_view, name='statistic'),
 ]
