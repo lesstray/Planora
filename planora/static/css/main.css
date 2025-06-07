@@ -147,8 +147,46 @@ body {
 
 /* 3. Информация о неделе */
 .week-info {
-    font-size: 18px;
-    margin-bottom: 15px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5em 2em; /* чтобы вокруг текста был отступ */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* Общие стили для обеих стрелок */
+.prev-week,
+.next-week {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font-size: 24px;
+  font-weight: 500;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(110,69,226,0.8), rgba(136,211,206,0.8));
+  color: #FFF;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Слева и справа от центра */
+.prev-week {
+  margin-right: 1em;
+}
+.next-week {
+  margin-left: 1em;
+}
+
+/* Эффект при наведении */
+.prev-week:hover,
+.next-week:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* 5. Ряд: три или один столбец */
@@ -512,6 +550,12 @@ mark {
   border-radius: 2px;
 }
 
+.week-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px; /* или ваш отступ */
+}
 
 /* 8. Адаптивность */
 @media (max-width: 1200px) {

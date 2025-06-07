@@ -61,7 +61,7 @@ class GroupStatistic(APIView):
     def get(self, request, pk):
         try:
             group = Group.objects.get(pk=pk)
-            serializer = GroupSerializer(group)  # Создаём экземпляр
+            serializer = GroupSerializer(group)
             return Response(serializer.data)
         except Group.DoesNotExist:
             return Response(
@@ -141,97 +141,73 @@ def _make_time_slots(start="08:00", end="20:00", step_hours=2):
     return slots  # ["08:00", "10:00", "12:00", ...]
 
 
-month_map = {
-    "янв": "Jan", "фев": "Feb", "мар": "Mar", "апр": "Apr", "мая": "May", "июн": "Jun",
-    "июл": "Jul", "авг": "Aug", "сен": "Sep", "окт": "Oct", "ноя": "Nov", "дек": "Dec"
-}
+from django.shortcuts import render
+import dateparser
+from .ruz_parser import get_schedule
+from datetime import datetime, timedelta
 
-weekday_map = {
-    "пн": "Monday", "вт": "Tuesday", "ср": "Wednesday", "чт": "Thursday",
-    "пт": "Friday", "сб": "Saturday", "вс": "Sunday"
-}
 
 
 def schedule(request):
-    times = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"]
     context = {
         'time_slots': _make_time_slots("08:00", "20:00", 2),
-        'selected_group': request.POST.get('groupNumber', ''),
-        'selected_date': request.POST.get('scheduleDate', ''),
+        'selected_group': '',
+        'selected_date': '',
     }
-    print(_make_time_slots("08:00", "20:00", 2))
-    if request.method == 'POST':
-        raw = get_schedule(context['selected_group'], context['selected_date'])
-        
-        # Очистка данных от дня недели и точек
-        week_start = raw.get('week_start').split(',')[0].replace('.', '').strip()  # "21 апр"
-        week_end = raw.get('week_end').split(',')[0].replace('.', '').strip()      # "25 апр"
-        schedule = raw.get('schedule')
-        # Парсинг даты через dateparser (более гибкий)
-        current_date = dateparser.parse(week_start, languages=['ru'])
-        end_date = dateparser.parse(week_end, languages=['ru'])
-        
-        if not current_date or not end_date:
-            print(f"Ошибка парсинга даты: {week_start} или {week_end}")
+
+    if request.method == 'GET':
+        group = request.GET.get('groupNumber', '')
+        date_str = request.GET.get('scheduleDate', '')
+    else:
+        group = request.POST.get('groupNumber', '')
+        date_str = request.POST.get('scheduleDate', '')
+
+    context['selected_group'] = group
+    context['selected_date'] = date_str
+
+    if group and date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            context['error_message'] = "Неверный формат даты"
             return render(request, 'schedule.html', context)
-        
-        # Формируем day_order с датами
-        day_order = []
-        delta = timedelta(days=1)
-        while current_date <= end_date:
-            day_name = current_date.strftime("%A").capitalize()
-            day_date = current_date.strftime("%d %b")
-            day_key = f"{day_name}, {day_date}"
-            day_order.append(day_key)
-            current_date += delta
-        
-        
-        # Добавляем недостающие дни (Суббота и Воскресенье)
-        required_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        existing_days = [d.split(", ")[0] for d in day_order]
-        for day in required_days:
-            if day not in existing_days:
-                #print(day)
-                day_date = (end_date + timedelta(days=1)).strftime("%d %b")
-                day_key = f"{day}, {day_date}"
-                day_order.append(day_key)
-                end_date += timedelta(days=1)
-        
-        converted = {}
-        for key, value in schedule.items():
-            day_part, weekday_ru = key.split(", ")
-            day_str, month_ru = day_part.split()
 
-            # Переводим в английские сокращения
-            month_en = month_map[month_ru.strip(".")]
-            weekday_en = weekday_map[weekday_ru]
+        week_start = selected_date - timedelta(days=selected_date.weekday())
+        week_end = week_start + timedelta(days=6)
 
-            # Формируем новый ключ
-            new_key = f"{weekday_en}, {day_str} {month_en}"
-            converted[new_key] = value
+        #print(f"Getting schedule for group={group}, date={week_start.isoformat()}")
+        raw = get_schedule(group, week_start.isoformat())
+        #print(f"Result: {raw}")
 
-        print("Day Order:", day_order)
-        print("Schedule Keys:", converted.keys())
-        #print(converted)
-        structured = {}
-        for day_key in day_order:
-            # lessons = corrected_raw.get(day_key, [])
-            lessons = converted.get(day_key, [])  # Используем converted вместо corrected_raw
+        if 'error' in raw:
+            context['error_message'] = raw['error']
+            return render(request, 'schedule.html', context)
+
+        # Создаем список дат с понедельника по воскресенье
+        dates = [week_start + timedelta(days=i) for i in range(7)]
+        
+        # Формируем расписание по дням
+        schedule_by_date = []
+        for d in dates:
+            date_key = d.strftime('%Y-%m-%d')
+            lessons = raw['schedule'].get(date_key, [])
+            
+            # Создаем словарь для быстрого доступа по времени начала
             day_map = {}
             for les in lessons:
-                st = les.get('start_time')
-                if st:
-                    day_map[st] = les  # Ключ должен совпадать с форматом времени в time_slots
-            structured[day_key] = day_map
-        print(structured)
+                if les.get('start_time'):
+                    # Обработка формата времени
+                    if ':' in les['start_time']:
+                        time_parts = les['start_time'].split(':')
+                        formatted_time = f"{time_parts[0]}:{time_parts[1]}"
+                        day_map[formatted_time] = les
+            
+            schedule_by_date.append((d, day_map))
+
         context.update({
             'week_start': week_start,
             'week_end': week_end,
-            'schedule': structured,
-            'day_order': day_order,
-            'saturday_date': (end_date + timedelta(days=1)).strftime("%d %b"),
-            'sunday_date': (end_date + timedelta(days=2)).strftime("%d %b"),
+            'schedule_by_date': schedule_by_date,
         })
 
     return render(request, 'schedule.html', context)
-#
