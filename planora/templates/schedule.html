@@ -3,10 +3,8 @@
 {% load extras %}
 
 {% block title %}Planora – Расписание{% endblock %}
+
 {% block content %}
-<head>
-  <meta charset="UTF-8">  <!-- Добавьте эту строку -->
-</head>
 <div class="home-container">
   <div class="schedule-controls">
     <form method="POST" action="{% url 'home:schedule' %}" class="schedule-form">
@@ -27,6 +25,15 @@
     </form>
   </div>
 
+  <div class="search-container">
+  <input
+    type="text"
+    id="search-input"
+    placeholder="Поиск по предмету, преподавателю, аудитории, заметкам..."
+  >
+  </div>
+
+
   {% if schedule %}
   <div class="week-info" style="text-align:center; margin-bottom:1em;">
     <strong>Неделя:</strong> {{ week_start }} – {{ week_end }}
@@ -34,91 +41,196 @@
 
   <div class="schedule-wrapper">
 
-    {# — ПН–СР — #}
+    {# — Понедельник–Среда — #}
     <div class="schedule-row first-row">
-      {% for day_key in day_order|slice:":3" %}
+      {% for day_key in day_order|slice:"0:3" %}
         {% with day=day_key|split:", "|first date=day_key|split:", "|last lessons=schedule|dict_get:day_key %}
-        {% with start_time=time_slot|split:"–"|first end_time=time_slot|split:"–"|last %}
         <div class="day-column">
           <div class="day-header">{{ day }}, {{ date }}</div>
-              {% for time in time_slots %}
-                {% with les=lessons|dict_get:time %}
-                <div class="schedule-line">
-                  <textarea>{% spaceless %}
-                    {% if les %}
-                      {{ les.start_time }}–{{ les.end_time }} {{ les.subject }}
-                    {% else %}
-                      {{ start_time }}–{{ end_time }}
-                    {% endif %}
-                  {% endspaceless %}</textarea>
-                </div>
-                {% endwith %}
-              {% endfor %}
+          {% for time in time_slots %}
+            {% with les=lessons|dict_get:time %}
+            <div class="schedule-line"
+                 onclick="openModal(
+                   '{{ day }}',
+                   '{{ time }}',
+                   {% if les %}'{{ les.subject|escapejs }}'{% else %}''{% endif %},
+                   {% if les and les.teacher %}'{{ les.teacher|escapejs }}'{% else %}''{% endif %},
+                   {% if les and les.place %}'{{ les.place|escapejs }}'{% else %}''{% endif %}
+                 )">
+              <div class="line-content">
+                {% if les %}
+                  <div><strong>{{ les.start_time }}–{{ les.end_time }}</strong></div>
+                  <div>{{ les.subject }}</div>
+                  <div>{{ les.teacher }}</div>
+                  <div>{{ les.place }}</div>
+                {% else %}
+                  <div>{{ time }}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endwith %}
+          {% endfor %}
         </div>
-        {% endwith %}
         {% endwith %}
       {% endfor %}
     </div>
 
-    {# — ЧТ–СБ — #}
+    {# — Четверг–Суббота — #}
     <div class="schedule-row second-row">
       {% for day_key in day_order|slice:"3:6" %}
         {% with day=day_key|split:", "|first date=day_key|split:", "|last lessons=schedule|dict_get:day_key %}
         <div class="day-column">
           <div class="day-header">{{ day }}, {{ date }}</div>
-            {% for time in time_slots %}
-              {% with les=lessons|dict_get:time %}
-              <div class="schedule-line">
-                <textarea>{% spaceless %}
-                  {% if les %}
-                    {{ les.start_time }}–{{ les.end_time }} {{ les.subject }}
-                  {% else %}
-                    {{ time }}
-                  {% endif %}
-                {% endspaceless %}</textarea>
+          {% for time in time_slots %}
+            {% with les=lessons|dict_get:time %}
+            <div class="schedule-line"
+                 onclick="openModal(
+                   '{{ day }}',
+                   '{{ time }}',
+                   {% if les %}'{{ les.subject|escapejs }}'{% else %}''{% endif %},
+                   {% if les and les.teacher %}'{{ les.teacher|escapejs }}'{% else %}''{% endif %},
+                   {% if les and les.place %}'{{ les.place|escapejs }}'{% else %}''{% endif %}
+                 )">
+              <div class="line-content">
+                {% if les %}
+                  <div><strong>{{ les.start_time }}–{{ les.end_time }}</strong></div>
+                  <div>{{ les.subject }}</div>
+                  <div>{{ les.teacher }}</div>
+                  <div>{{ les.place }}</div>
+                {% else %}
+                  <div>{{ time }}</div>
+                {% endif %}
               </div>
-              {% endwith %}
-            {% endfor %}
+            </div>
+            {% endwith %}
+          {% endfor %}
         </div>
         {% endwith %}
       {% endfor %}
-      {# Принудительно добавляем СБ, если её нет #}
-      <!-- {% if "Суббота" not in day_order %}
-        <div class="day-column">
-          <div class="day-header">Суббота, {{ saturday_date }}</div>
-          {% for time in time_slots %}
-            <div class="schedule-line">
-              <textarea>{{ time }}</textarea>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %} -->
     </div>
-    {# — ВС — #}
+
+    {# — Воскресенье — #}
     <div class="schedule-row third-row">
       {% for day_key in day_order|slice:"6:7" %}
         {% with day=day_key|split:", "|first date=day_key|split:", "|last lessons=schedule|dict_get:day_key %}
         <div class="day-column">
           <div class="day-header">{{ day }}, {{ date }}</div>
-            {% for time in time_slots %}
-              {% with les=lessons|dict_get:time %}
-              <div class="schedule-line">
-                <textarea>{% spaceless %}
-                  {% if les %}
-                    {{ les.start_time }}–{{ les.end_time }} {{ les.subject }}
-                  {% else %}
-                    {{ time }}
-                  {% endif %}
-                {% endspaceless %}</textarea>
+          {% for time in time_slots %}
+            {% with les=lessons|dict_get:time %}
+            <div class="schedule-line"
+                 onclick="openModal(
+                   '{{ day }}',
+                   '{{ time }}',
+                   {% if les %}'{{ les.subject|escapejs }}'{% else %}''{% endif %},
+                   {% if les and les.teacher %}'{{ les.teacher|escapejs }}'{% else %}''{% endif %},
+                   {% if les and les.place %}'{{ les.place|escapejs }}'{% else %}''{% endif %}
+                 )">
+              <div class="line-content">
+                {% if les %}
+                  <div><strong>{{ les.start_time }}–{{ les.end_time }}</strong></div>
+                  <div>{{ les.subject }}</div>
+                  <div>{{ les.teacher }}</div>
+                  <div>{{ les.place }}</div>
+                {% else %}
+                  <div>{{ time }}</div>
+                {% endif %}
               </div>
-              {% endwith %}
-            {% endfor %}
+            </div>
+            {% endwith %}
+          {% endfor %}
         </div>
         {% endwith %}
       {% endfor %}
     </div>
+
   </div>
   {% endif %}
-
 </div>
+
+{# Модальное окно #}
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 style="text-align: center;">Детали</h3>
+    <div id="modal-body">
+      <p><strong>День:</strong> <span id="modal-day"></span></p>
+      <p><strong>Время:</strong> <span id="modal-time"></span></p>
+      <p><strong>Дисциплина:</strong> <span id="modal-discipline"></span></p>
+      <p><strong>Преподаватель:</strong> <span id="modal-teacher"></span></p>
+      <p><strong>Аудитория:</strong> <span id="modal-place"></span></p>
+
+      <label for="notes">Заметки:</label>
+      <textarea id="notes" rows="3" placeholder="Введите заметку..."></textarea>
+
+      <label for="attachments">Вложения:</label>
+      <input type="file" id="attachments" multiple>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Словарь для хранения заметок: ключ — «день_время», значение — текст
+  const notesData = {};
+
+  function openModal(day, time, subject, teacher, place) {
+    const key = day + '_' + time;
+
+    document.getElementById('modal-day').innerText = day;
+    document.getElementById('modal-time').innerText = time;
+    document.getElementById('modal-discipline').innerText = subject;
+    document.getElementById('modal-teacher').innerText = teacher;
+    document.getElementById('modal-place').innerText = place;
+
+    // Подставляем сохранённую заметку, если есть
+    const savedNote = notesData[key] || '';
+    document.getElementById('notes').value = savedNote;
+
+    document.getElementById('attachments').value = ''; // сбрасываем поле вложений
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').style.display = 'block';
+
+    // Сохраним текущий ключ, чтобы знать, куда сохранить заметку при закрытии
+    document.getElementById('modal').setAttribute('data-current-key', key);
+  }
+
+  function closeModal() {
+    // Сохраняем заметку перед закрытием
+    const key = document.getElementById('modal').getAttribute('data-current-key');
+    const noteText = document.getElementById('notes').value;
+    notesData[key] = noteText;
+
+    document.getElementById('modal').classList.add('hidden');
+    document.getElementById('modal').style.display = 'none';
+  }
+</script>
+
+<script>
+  // Ждём полной загрузки DOM
+  document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('search-input');
+
+    input.addEventListener('input', function () {
+      const query = this.value.trim().toLowerCase();
+
+      // Проходим по всем блокам .schedule-line
+      document.querySelectorAll('.schedule-line').forEach(function(line) {
+        // Внутри ячейки есть <div class="line-content">, содержащий все тексты пары
+        const textBlock = line.querySelector('.line-content');
+        if (!textBlock) return;
+
+        // Берём весь текст из <div class="line-content">
+        const text = textBlock.innerText.toLowerCase();
+
+        // Если поле поиска пустое или текст содержит запрос — показываем, иначе скрываем
+        if (query === '' || text.includes(query)) {
+          line.style.display = '';  // покажем
+        } else {
+          line.style.display = 'none'; // скроем
+        }
+      });
+    });
+  });
+</script>
+
 {% endblock %}
+

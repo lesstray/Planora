@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block title %}Planora - Расписание{% endblock %}
-
 {% block content %}
+
 <div class="home-container">
     <div class="navigation-buttons">
         <a href="{% url 'dashboard' %}" class="nav-button dashboard-button">
@@ -15,6 +15,7 @@
     </div>
     <div class="schedule-controls">
         <form method="POST" class="schedule-form">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="input-block">
                     <label for="groupNumber">Номер группы</label>

@@ -5,6 +5,7 @@ from . import views
 
 app_name = 'home'
 
+
 urlpatterns = [
     # API endpoints
     # path('', include(router.urls)),
