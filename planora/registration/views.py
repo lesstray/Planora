@@ -124,9 +124,9 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
                 errors['password'] = ', '.join(e.messages)
 
         # Проверка домена email в зависимости от роли
-        # if 'email' not in errors and not validate_email_domain(email, role):
-        #     expected = '@spbstu.ru' if role == 'teacher' else '@edu.spbstu.ru'
-        #     errors['email'] = f'Email должен оканчиваться на {expected}'
+        if 'email' not in errors and not validate_email_domain(email, role):
+            expected = '@spbstu.ru' if role == 'teacher' else '@edu.spbstu.ru'
+            errors['email'] = f'Email должен оканчиваться на {expected}'
 
         # Проверка существующих пользователей
         existing_user = User.objects.filter(username=username).first()
