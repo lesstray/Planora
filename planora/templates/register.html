@@ -6,35 +6,6 @@
     <link rel="stylesheet" href="{% static 'css/register.css' %}">
     <title>Регистрация</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <style>
-        .g-recaptcha {
-            margin: 20px 0;
-            transform: scale(0.85);
-        }
-        .error-message {
-            color: #ff4444;
-            margin: 5px 0 15px;
-            font-size: 14px;
-            padding: 10px;
-            border-radius: 4px;
-            background-color: #ffebee;
-        }
-        .success-message {
-            color: #2e7d32;
-            margin: 5px 0 15px;
-            font-size: 14px;
-            padding: 10px;
-            border-radius: 4px;
-            background-color: #e8f5e9;
-        }
-        .input-block {
-            margin-bottom: 15px;
-        }
-        .confirmation-text {
-            color: white;
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -52,49 +23,43 @@
                     {% endfor %}
                 {% endif %}
 
+                <div class="role-block">
+                    <label>Роль:</label><br>
+                    <label><input type="radio" name="role" value="teacher" {% if role == 'teacher' %}checked{% endif %}> Преподаватель</label>
+                    <label><input type="radio" name="role" value="student" {% if role == 'student' %}checked{% endif %}> Студент</label>
+                </div>
+
                 <div class="input-block">
                     <label for="full_name">ФИО</label>
                     <input id="full_name" type="text" name="full_name"
-                           value="{{ request.POST.full_name|default:'' }}"
+                           value="{{ full_name|default:'' }}"
                            placeholder="Иванов Иван Иванович" required>
                 </div>
 
                 <div class="input-block">
                     <label for="email">Электронная почта</label>
                     <input id="email" type="email" name="email"
-                           value="{{ request.POST.email|default:'' }}"
+                           value="{{ email|default:'' }}"
                            placeholder="example@mail.ru" required>
-                    {% if form.errors.email %}
-                        <div class="error-message">{{ form.errors.email }}</div>
-                    {% endif %}
                 </div>
 
                 <div class="input-block">
                     <label for="username">Логин</label>
                     <input id="username" type="text" name="username"
-                           value="{{ request.POST.username|default:'' }}"
+                           value="{{ username|default:'' }}"
                            placeholder="Придумайте логин" required>
-                    {% if form.errors.username %}
-                        <div class="error-message">{{ form.errors.username }}</div>
-                    {% endif %}
                 </div>
 
-                <div class="input-block">
+               <div class="input-block">
                     <label for="password1">Пароль</label>
                     <input id="password1" type="password" name="password1"
                            placeholder="Не менее 8 символов" required>
-                    {% if form.errors.password1 %}
-                        <div class="error-message">{{ form.errors.password1 }}</div>
-                    {% endif %}
                 </div>
 
                 <div class="input-block">
                     <label for="password2">Подтвердите пароль</label>
                     <input id="password2" type="password" name="password2"
                            placeholder="Повторите пароль" required>
-                    {% if form.errors.password2 %}
-                        <div class="error-message">{{ form.errors.password2 }}</div>
-                    {% endif %}
                 </div>
 
                 <div class="g-recaptcha"
