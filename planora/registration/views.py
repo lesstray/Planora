@@ -9,17 +9,52 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from login.models import TwoFactorCode
 from typing import Dict, Any, Union
+from home.models import Subject, StudyGroup
+from home.ruz_teacher_parser import collect_teacher_month_schedule
+from datetime import datetime
 
 
 User = get_user_model()
 
 
+# функция для передачи в шаблон значений формы
+def get_form_context(request) -> Dict:
+    """
+    Передача значений формы в шаблон
+
+    :param request: запрос
+    :param role: роль (преподаватель/студент)
+    """
+    return {
+        'role': request.POST.get('role', ''),
+        'full_name': request.POST.get('full_name', ''),
+        'email': request.POST.get('email', ''),
+        'username': request.POST.get('username', ''),
+    }
+
+
+def validate_email_domain(email: str, role: str) -> bool:
+    """
+    Проверяет домен email
+
+    :param email: адрес электронной почты
+    :param role: преподаватель или студент
+    :return: True, если домен email валидный, иначе False.
+    """
+    domain = email.split('@')[-1].lower()
+    if role == 'teacher':
+        return domain == 'spbstu.ru'
+    if role == 'student':
+        return domain == 'edu.spbstu.ru'
+    return False
+
+
 def verify_recaptcha(token: str) -> bool:
     """
-    Проверяет токен Google reCAPTCHA v2.
+    Проверяет токен Google reCAPTCHA v2
 
-    :param token: токен reCAPTCHA, полученный из формы.
-    :return: True, если проверка пройдена успешно, иначе False.
+    :param token: токен reCAPTCHA, полученный из формы
+    :return: True, если проверка пройдена успешно, иначе False
     """
     data = {
         'secret': settings.RECAPTCHA_PRIVATE_KEY,
@@ -45,26 +80,17 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     :return: HttpResponseRedirect при успехе или render с формой при ошибке
     """
     if request.method == "POST":
-        # # Проверка CAPTCHA
+        # Проверка CAPTCHA
         recaptcha_token = request.POST.get('g-recaptcha-response')
         if not recaptcha_token:
             messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
-            return render(request, 'register.html', {
-                'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
-                'username': request.POST.get('username', ''),
-                'email': request.POST.get('email', ''),
-                'full_name': request.POST.get('full_name', '')
-            })
+            return render(request, 'register.html', get_form_context(request))
         if not verify_recaptcha(recaptcha_token):
             messages.error(request, 'Ошибка проверки reCAPTCHA')
-            return render(request, 'register.html', {
-                'captcha_error': 'Проверка reCAPTCHA не пройдена',
-                'username': request.POST.get('username', ''),
-                'email': request.POST.get('email', ''),
-                'full_name': request.POST.get('full_name', '')
-            })
+            return render(request, 'register.html', get_form_context(request))
 
         # Получение данных
+        role = request.POST.get('role')
         username = request.POST.get('username').strip()
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
@@ -72,132 +98,86 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
         full_name = request.POST.get('full_name').strip()
 
         # Валидация данных
-        errors = {}
-
-        if not username:
-            errors['username'] = 'Введите логин'
-        if not email:
-            errors['email'] = 'Введите email'
+        errors: Dict[str, str] = {}
+        if not role or role not in ('teacher', 'student'):
+            errors['role'] = 'Выберите роль'
         if not full_name:
             errors['full_name'] = 'Введите ФИО'
+        if not email:
+            errors['email'] = 'Введите email'
+        if not username:
+            errors['username'] = 'Введите логин'
         if not password1 or not password2:
-            errors['password1'] = 'Введите пароль'
+            errors['password'] = 'Введите пароль'
         elif password1 != password2:
-            errors['password2'] = 'Пароли не совпадают'
+            errors['password'] = 'Пароли не совпадают'
+        else:
+            try:
+                validate_password(password1)
+            except ValidationError as e:
+                errors['password'] = ', '.join(e.messages)
 
-    if request.method != "POST":
-        return render(request, 'register.html')
+        # Проверка домена email в зависимости от роли
+        if 'email' not in errors and not validate_email_domain(email, role):
+            expected = '@spbstu.ru' if role == 'teacher' else '@edu.spbstu.ru'
+            errors['email'] = f'Email должен оканчиваться на {expected}'
 
-    # Проверка CAPTCHA
-    recaptcha_token = request.POST.get('g-recaptcha-response')
-    if not recaptcha_token:
-        messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
-        return render(request, 'register.html', {
-            'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
-            'username': request.POST.get('username', ''),
-            'email': request.POST.get('email', ''),
-            'full_name': request.POST.get('full_name', '')
-        })
-    if not verify_recaptcha(recaptcha_token):
-        messages.error(request, 'Ошибка проверки reCAPTCHA')
-        return render(request, 'register.html', {
-            'captcha_error': 'Проверка reCAPTCHA не пройдена',
-            'username': request.POST.get('username', ''),
-            'email': request.POST.get('email', ''),
-            'full_name': request.POST.get('full_name', '')
-        })
+        # Проверка существующих пользователей
+        existing_user = User.objects.filter(username=username).first()
+        if existing_user:
+            if existing_user.is_active:
+                errors['username'] = 'Логин уже используется'
+            else:
+                # Удаление старой неактивной регистрации
+                existing_user.delete()
+                TwoFactorCode.objects.filter(user=existing_user).delete()
+        existing_email = User.objects.filter(email=email).first()
+        if existing_email:
+            if existing_email.is_active:
+                errors['email'] = 'Email уже зарегистрирован'
+            else:
+                # Удаление старой неактивной регистрации
+                existing_email.delete()
+                TwoFactorCode.objects.filter(user=existing_email).delete()
 
-    # Получение и очистка данных формы
-    username = request.POST.get('username').strip()
-    password1 = request.POST.get('password1')
-    password2 = request.POST.get('password2')
-    email = request.POST.get('email').strip()
-    full_name = request.POST.get('full_name').strip()
+        # Обработка ошибок
+        if errors:
+            for e in errors.values():
+                messages.error(request, e)
+            return render(request, 'register.html', get_form_context(request))
 
-    # Валидация данных
-    errors: Dict[str, str] = {}
-
-    # Проверка обязательных полей
-    if not username:
-        errors['username'] = 'Введите логин'
-    if not email:
-        errors['email'] = 'Введите email'
-    if not full_name:
-        errors['full_name'] = 'Введите ФИО'
-
-    # Проверка паролей
-    if not password1 or not password2:
-        errors['password'] = 'Введите пароль'
-    elif password1 != password2:
-        errors['password'] = 'Пароли не совпадают'
-    else:
+        # Создание неактивного пользователя
         try:
-            validate_password(password1)
-        except ValidationError as e:
-            errors['password'] = ', '.join(e.messages)
+            user = User.objects.create_user(
+                username=username,
+                password=password1,
+                email=email,
+                full_name=full_name,
+                is_active=False,     # Пользователь неактивен до подтверждения почты
+                role=role
+            )
 
-    # Проверка существующих пользователей
-    existing_user = User.objects.filter(username=username).first()
-    if existing_user:
-        if existing_user.is_active:
-            errors['username'] = 'Пользователь с таким именем уже существует'
-        else:
-            # Удаление старой неактивной регистрации
-            existing_user.delete()
-            TwoFactorCode.objects.filter(user=existing_user).delete()
+            # Генерация и отправка кода подтверждения
+            code = TwoFactorCode.generate_code(user)
+            send_mail(
+                subject='Подтверждение регистрации',
+                message=f'Ваш код подтверждения: {code.code}',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
 
-    existing_email = User.objects.filter(email=email).first()
-    if existing_email:
-        if existing_email.is_active:
-            errors['email'] = 'Пользователь с таким email уже существует'
+            # Сохранение ID пользователя в сессии
+            request.session['registration_user_id'] = user.id
+            messages.success(request, 'Код подтверждения отправлен на вашу почту')
+            return redirect('verify_registration')
 
-        else:
-            # Удаление старой неактивной регистрации
-            existing_email.delete()
-            TwoFactorCode.objects.filter(user=existing_email).delete()
+        except Exception as e:
+            messages.error(request, f'Ошибка при регистрации: {e}')
+            return render(request, 'register.html', get_form_context(request))
 
-    # Обработка ошибок
-    if errors:
-        for error in errors.values():
-            messages.error(request, error)
-        return render(request, 'register.html', {
-            'username': username,
-            'email': email,
-            'full_name': full_name
-        })
-
-    # Создание неактивного пользователя
-    try:
-        user = User.objects.create_user(
-            username=username,
-            password=password1,
-            email=email,
-            full_name=full_name,
-            is_active=False     # Пользователь неактивен до подтверждения почты
-        )
-
-        # Генерация и отправка кода подтверждения
-        code = TwoFactorCode.generate_code(user)
-        send_mail(
-            subject='Подтверждение регистрации',
-            message=f'Ваш код подтверждения: {code.code}',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
-        # Сохранение ID пользователя в сессии
-        request.session['registration_user_id'] = user.id
-        messages.success(request, 'Код подтверждения отправлен на вашу почту')
-        return redirect('verify_registration')
-
-    except Exception as e:
-        messages.error(request, f'Ошибка при регистрации: {str(e)}')
-        return render(request, 'register.html', {
-            'username': username,
-            'email': email,
-            'full_name': full_name
-        })
+    # GET
+    return render(request, 'register.html', get_form_context(request))
 
 
 def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
@@ -244,6 +224,29 @@ def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any
 
                 # Активация пользователя
                 user.is_active = True
+
+                # Если преподаватель - собираем и сохраняем предметы и группы:
+                if user.role == 'teacher':
+                    # Взять расписание за ближайший месяц (сегодняшняя дата)
+                    lessons, groups = collect_teacher_month_schedule(
+                        teacher_fullname=user.full_name,
+                        start_date=datetime.today().isoformat()[:10],  # 'YYYY-MM-DD'
+                        weeks=4
+                    )
+                    # Создать/получить объекты Subject
+                    subj_objs = []
+                    for subj in set(lessons):
+                        obj, _ = Subject.objects.get_or_create(name=subj)
+                        subj_objs.append(obj)
+                    # Создать/получить объекты StudyGroup
+                    group_objs = []
+                    for grp in set(groups):
+                        obj, _ = StudyGroup.objects.get_or_create(name=grp)
+                        group_objs.append(obj)
+                    # Назначить M2M-поля
+                    user.subjects.set(subj_objs)
+                    user.groups.set(group_objs)
+
                 user.save()
 
                 # Очистка сессии

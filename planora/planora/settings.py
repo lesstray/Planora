@@ -108,7 +108,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'LinaSniperSF',
+        'PASSWORD': '9341',
         'HOST': 'localhost',
         'PORT': '5432'
     }
@@ -176,7 +176,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = 'account_dashboard'
+LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [

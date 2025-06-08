@@ -11,7 +11,7 @@ from planora import settings
 
 
 @login_required
-def account_dashboard(request: HttpRequest) -> HttpResponse:
+def dashboard(request: HttpRequest) -> HttpResponse:
     """Главная страница личного кабинета"""
     active_sessions = get_active_sessions(request.user, request.session.session_key)
     return render(request, 'dashboard.html', {
