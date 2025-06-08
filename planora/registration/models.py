@@ -10,15 +10,42 @@ class CustomUser(AbstractUser):
         ('student', 'Студент'),
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, verbose_name='Роль')
-    subjects = models.ManyToManyField(
-        'home.Subject',  # строковая нотация, чтобы не было цикла
+
+    # === для преподавателя ===
+    teaching_subjects = models.ManyToManyField(
+        'home.Subject',
         blank=True,
-        verbose_name='Преподаваемые предметы'
+        verbose_name='Преподаваемые предметы',
+        related_name='teachers'
     )
-    groups = models.ManyToManyField(
+    teaching_groups = models.ManyToManyField(
         'home.StudyGroup',
         blank=True,
-        verbose_name='Учебные группы'
+        verbose_name='Группы преподавания',
+        related_name='teachers'
+    )
+
+    # === для студента ===
+    student_group = models.ForeignKey(
+        'home.StudyGroup',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name='Учебная группа студента',
+        related_name='students'
+    )
+    student_subjects = models.ManyToManyField(
+        'home.Subject',
+        blank=True,
+        verbose_name='Предметы студента',
+        related_name='students'
+    )
+    student_teachers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        limit_choices_to={'role': 'teacher'},
+        related_name='student_of',
+        verbose_name='Препеподаватели студента'
     )
 
     class Meta:
