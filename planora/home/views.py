@@ -15,7 +15,7 @@ from .serializers import (
     GroupSerializer,
 )
 from django.contrib.auth import get_user_model
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 
 # загрузка расписания
@@ -24,6 +24,12 @@ import dateparser
 from datetime import datetime as dt, timedelta
 from django.views.decorators.http import require_POST
 from .ruz_parser import get_schedule
+from django.shortcuts import render
+import dateparser
+from .ruz_parser import get_schedule
+from datetime import datetime, timedelta
+from django.urls import reverse
+from django.http import JsonResponse
 #
 
 User = get_user_model()
@@ -123,7 +129,7 @@ class TaskDetail(APIView):
         return Response({'data': 'Analytics here'})
 
 def root_redirect(request):
-    return HttpResponseRedirect('/about')
+    return HttpResponseRedirect('/register')
 
 def home_view(request):
     return render(request, 'index.html')
@@ -139,13 +145,6 @@ def _make_time_slots(start="08:00", end="20:00", step_hours=2):
         slots.append(t0.strftime(fmt))
         t0 += timedelta(hours=step_hours)
     return slots  # ["08:00", "10:00", "12:00", ...]
-
-
-from django.shortcuts import render
-import dateparser
-from .ruz_parser import get_schedule
-from datetime import datetime, timedelta
-
 
 
 def schedule(request):
@@ -179,6 +178,12 @@ def schedule(request):
         raw = get_schedule(group, week_start.isoformat())
         #print(f"Result: {raw}")
 
+        tasks = Task.objects.filter(
+            group=group,
+            date__gte=week_start,
+            date__lte=week_end
+        ).values('date', 'start_time', 'description', 'done')
+
         if 'error' in raw:
             context['error_message'] = raw['error']
             return render(request, 'schedule.html', context)
@@ -195,14 +200,35 @@ def schedule(request):
             # Создаем словарь для быстрого доступа по времени начала
             day_map = {}
             for les in lessons:
-                if les.get('start_time'):
-                    # Обработка формата времени
-                    if ':' in les['start_time']:
-                        time_parts = les['start_time'].split(':')
-                        formatted_time = f"{time_parts[0]}:{time_parts[1]}"
-                        day_map[formatted_time] = les
-            
-            schedule_by_date.append((d, day_map))
+                st = les.get('start_time')
+                if st:
+                    day_map[st] = {
+                        'type':    'lesson',
+                        'subject': les['subject'],
+                        'teacher': les['teacher'],
+                        'place':   les['place'],
+                        'done':    False,
+                    }
+
+            # Задачи из БД
+            for t in filter(lambda t: t['date'] == d, tasks):
+                key = t['start_time'].strftime("%H:%M")
+                day_map[key] = {
+                    'type':        'task',
+                    'description': t['description'],
+                    'done':        t['done'],
+                }
+
+            # Сортируем события по времени
+            sorted_events = [
+                (time, info)
+                for time, info in sorted(
+                    day_map.items(),
+                    key=lambda x: datetime.strptime(x[0], "%H:%M")
+                )
+            ]
+
+            schedule_by_date.append((d, sorted_events))
 
         context.update({
             'week_start': week_start,
@@ -211,3 +237,53 @@ def schedule(request):
         })
 
     return render(request, 'schedule.html', context)
+
+
+@require_POST
+def create_task(request):
+    user = request.user
+    group = request.POST.get('group')
+    date = request.POST.get('date')
+    start_time = request.POST.get('start_time')
+    end_time = request.POST.get('end_time')
+    description = request.POST.get('description')
+    place = request.POST.get('place')
+    notes = request.POST.get('notes')
+    done = request.POST.get('done') == 'on'
+    attachment = request.FILES.get('attachment')
+
+    Task.objects.create(
+        user=user,
+        group=group,
+        date=date,
+        start_time=start_time,
+        end_time=end_time,
+        description=description,
+        place=place,
+        notes=notes,
+        done=done,
+        attachment=attachment
+    )
+    url = reverse('home:schedule') + f"?groupNumber={request.POST['group']}&scheduleDate={request.POST['date']}"
+    return HttpResponseRedirect(url)
+
+
+@require_POST
+def toggle_task_done(request, task_id):
+    task = Task.objects.get(id=task_id)
+    if task.user != request.user:
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    task.done = not task.done
+    task.save()
+    return JsonResponse({'success': True, 'done': task.done})
+
+@require_POST
+def delete_task(request):
+    task_id = request.POST.get('task_id')
+    if not task_id:
+        return JsonResponse({'success': False, 'error': 'task_id не передан'}, status=400)
+
+    task = get_object_or_404(Task, id=task_id, user=request.user)  # если есть связь с пользователем
+
+    task.delete()
+    return JsonResponse({'success': True})
