@@ -10,7 +10,6 @@ urlpatterns = [
     # API endpoints
     # path('', include(router.urls)),
     path('schedule/', views.schedule, name='schedule'),
-
     path('export.ics', views.export_ics, name='export_ics'),
     # Дополнительные кастомные эндпоинты (если нужны)
     # path('some-custom-endpoint/', views.some_view, name='some-view'),
