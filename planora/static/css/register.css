@@ -123,6 +123,18 @@ body {
   transform: scale(1.1);
 }
 
+/* Плавное появление/скрытие блока номера группы */
+#group-number-block {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+#group-number-block.show {
+    max-height: 200px; /* достаточно для одного поля */
+    opacity: 1;
+}
+
 .form-title {
     color: white;
     text-align: center;
