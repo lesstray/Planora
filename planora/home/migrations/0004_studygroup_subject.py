@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('home', '0003_group'),
+        ('home', '0003_task_attachment_task_end_time_task_notes_task_place'),
     ]
 
     operations = [
