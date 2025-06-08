@@ -70,6 +70,59 @@ body {
     overflow: visible; /* Разрешаем контенту выходить за пределы */
 }
 
+.g-recaptcha {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.error-message {
+    color: #ff4444;
+    margin: 5px 0 15px;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #ffebee;
+}
+
+.success-message {
+    color: #2e7d32;
+    margin: 5px 0 15px;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #e8f5e9;
+}
+
+/* Стили для блока выбора роли */
+.role-block {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.8); /* светлый текст */
+  font-size: 0.95rem;
+  margin-bottom: 1.2rem;
+}
+
+.role-block label {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 3rem; /* расстояние между вариантами */
+  cursor: pointer;
+}
+
+.role-block input[type="radio"] {
+  accent-color: linear-gradient(45deg, #88d3ce, #6e45e2);
+  width: 18px;
+  height: 18px;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.role-block input[type="radio"]:focus {
+  transform: scale(1.1);
+}
+
 .form-title {
     color: white;
     text-align: center;
@@ -189,16 +242,4 @@ body {
         padding: 12px 25px;
         min-width: 180px;
     }
-}
-
-.g-recaptcha {
-    margin: 20px 0;
-    display: flex;
-    justify-content: center;
-}
-
-.error {
-    color: #ff4444;
-    text-align: center;
-    margin: 10px 0;
 }

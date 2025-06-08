@@ -3,6 +3,18 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class Subject(models.Model):
+    name = models.CharField(max_length=200, unique=True, verbose_name="Предмет")
+
+    def __str__(self):
+        return self.name
+
+class StudyGroup(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Учебная группа")
+
+    def __str__(self):
+        return self.name
+
 class Task(models.Model): # у модели будет уникальный ID
     title = models.CharField(max_length=200) # Название задачи
     description = models.TextField(blank=True) # Описание задачи

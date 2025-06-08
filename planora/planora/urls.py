@@ -29,7 +29,7 @@ from home.views import home_view, root_redirect, schedule
 from login.views import login_view, verify_2fa
 from registration.views import register_view, verify_registration
 from about.views import about_view
-from account.views import account_dashboard, change_password, terminate_sessions
+from account.views import dashboard, change_password, terminate_sessions
 from statistic.views import statistics_view
 
 
@@ -60,7 +60,7 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('verify-registration/', verify_registration, name='verify_registration'),
-    path('dashboard', account_dashboard, name='dashboard'),
+    path('dashboard', dashboard, name='dashboard'),
     path('change-password/', change_password, name='change_password'),
     path('terminate-sessions/', terminate_sessions, name='terminate_sessions'),
     path('statistic', statistics_view, name='statistic'),
