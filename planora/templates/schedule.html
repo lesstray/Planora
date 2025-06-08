@@ -5,6 +5,7 @@
 {% block title %}Planora – Расписание{% endblock %}
 {% block content %}
 <div class="home-container">
+  <!-- Управление расписанием -->
   <div class="schedule-controls">
     <form method="GET" action="{% url 'home:schedule' %}" class="schedule-form">
       <div class="form-row">
@@ -23,225 +24,562 @@
     </form>
   </div>
 
+  <!-- Поиск -->
   <div class="search-container">
     <input type="text" id="search-input"
            placeholder="Поиск по предмету, преподавателю, аудитории, заметкам...">
   </div>
 
-  {% if error_message %}
-  <div class="alert alert-error">
-    {{ error_message }}
-  </div>
-  {% endif %}
   {% if schedule_by_date %}
-    <div 
-      class="week-info"
-      data-week-start="{{ week_start|date:'Y-m-d' }}"
-      data-group="{{ selected_group }}"
-    >
+    <!-- Навигация по неделям -->
+    <div class="week-info"
+         data-week-start="{{ week_start|date:'Y-m-d' }}"
+         data-group="{{ selected_group }}">
       <span class="prev-week">&larr;</span>
       <strong>Неделя:&nbsp;</strong>
       {{ week_start|date:"d F Y" }} – {{ week_end|date:"d F Y" }}
       <span class="next-week">&rarr;</span>
     </div>
-
+    <a href="{% url 'home:export_ics' %}?groupNumber={{ selected_group }}&scheduleDate={{ selected_date }}" class="auth-button" style="margin-left:1em">
+      Экспорт в календарь (.ics)
+    </a>
     <div class="schedule-wrapper">
-  {# Первая строка: Пн–Ср #}
-  <div class="schedule-row first-row">
-    {% for date, lessons_map in schedule_by_date|slice:":3" %}
-      <div class="day-column">
-        <div class="day-header">{{ date|date:"l, d F" }}</div>
-        {% for time in time_slots %}
-          {% with les=lessons_map|dict_get:time %}
-            <div class="schedule-line" onclick="openModal(
-                   '{{ date|date:"l" }}',
-                   '{{ time }}',
-                   '{{ les.subject|default:''|escapejs }}',
-                   '{{ les.teacher|default:''|escapejs }}',
-                   '{{ les.place|default:''|escapejs }}'
-                 )">
-              <div class="line-content">
-                {% if les %}
-                  <div><strong>{{ les.start_time }}–{{ les.end_time }}</strong></div>
-                  <div>{{ les.subject }}</div>
-                  <div>{{ les.teacher }}</div>
-                  <div>{{ les.place }}</div>
-                {% else %}
-                  <div>{{ time }}</div>
-                {% endif %}
-              </div>
+      {# ПН–СР #}
+      <div class="schedule-row first-row">
+        {% for date, events in schedule_by_date|slice:":3" %}
+          <div class="day-column">
+            <div class="day-header">{{ date|date:"l, d F" }}</div>
+            <button class="add-task-button" data-date="{{ date|date:'Y-m-d' }}">Создать задачу</button>
+            <div class="events-list">
+              {% for ev in events %}
+                {% with st=ev.start_time en=ev.end_time notes=ev.notes %}
+                <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
+                     data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
+                     data-notes="{{ notes|default:'' }}"
+                     data-type="{{ ev.type }}"
+                     data-day="{{ date|date:'d.m.Y' }}"
+                     data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     {% if ev.type == 'lesson' %}
+                       data-subject="{{ ev.subject }}"
+                       data-teacher="{{ ev.teacher }}"
+                       data-place="{{ ev.place }}"
+                     {% else %}
+                       data-description="{{ ev.description }}"
+                       data-place="{{ ev.place }}"
+                       data-task-id="{{ ev.id }}"
+                     {% endif %}
+                >
+                  <div class="line-content">
+                    <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
+                    {% if ev.type == 'lesson' %}
+                      <div>{{ ev.subject }}</div>
+                      <div>{{ ev.teacher }}</div>
+                      <div>{{ ev.place }}</div>
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
+                    {% else %}
+                      <div>{{ ev.description }}</div>
+                      {% if ev.place %}<div><em>{{ ev.place }}</em></div>{% endif %}
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
+                      {% if ev.attachment %}
+                        <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
+                      {% endif %}
+                      <button
+                        class="delete-task-button"
+                        data-task-id="{{ ev.id }}"
+                        style="color: red; margin-top:5px;"
+                      >
+                        Удалить
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endwith %}
+              {% endfor %}
             </div>
-          {% endwith %}
+          </div>
         {% endfor %}
       </div>
-    {% endfor %}
-  </div>
 
-  {# Вторая строка: Чт–Сб #}
-  <div class="schedule-row second-row">
-    {% for date, lessons_map in schedule_by_date|slice:"3:6" %}
-      <div class="day-column {{ date|date:'EEEE'|lower }}">
-        <div class="day-header">{{ date|date:"l, d F" }}</div>
-        {% for time in time_slots %}
-          {% with les=lessons_map|dict_get:time %}
-            <div class="schedule-line" onclick="openModal(
-                   '{{ date|date:"l" }}',
-                   '{{ time }}',
-                   '{{ les.subject|default:''|escapejs }}',
-                   '{{ les.teacher|default:''|escapejs }}',
-                   '{{ les.place|default:''|escapejs }}'
-                 )">
-              <div class="line-content">
-                {% if les %}
-                  <div><strong>{{ les.start_time }}–{{ les.end_time }}</strong></div>
-                  <div>{{ les.subject }}</div>
-                  <div>{{ les.teacher }}</div>
-                  <div>{{ les.place }}</div>
-                {% else %}
-                  <div>{{ time }}</div>
-                {% endif %}
-              </div>
+      {# ЧТ–СБ #}
+      <div class="schedule-row second-row">
+        {% for date, events in schedule_by_date|slice:"3:6" %}
+          <div class="day-column {{ date|date:'EEEE'|lower }}">
+            <div class="day-header">{{ date|date:"l, d F" }}</div>
+            <button class="add-task-button" data-date="{{ date|date:'Y-m-d' }}">Создать задачу</button>
+            <div class="events-list">
+              {% for ev in events %}
+                {% with st=ev.start_time en=ev.end_time notes=ev.notes %}
+                <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
+                     data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
+                     data-notes="{{ notes|default:'' }}"
+                     data-type="{{ ev.type }}"
+                     data-day="{{ date|date:'d.m.Y' }}"
+                     data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     {% if ev.type == 'lesson' %}
+                       data-subject="{{ ev.subject }}"
+                       data-teacher="{{ ev.teacher }}"
+                       data-place="{{ ev.place }}"
+                     {% else %}
+                       data-description="{{ ev.description }}"
+                       data-place="{{ ev.place }}"
+                       data-task-id="{{ ev.id }}"
+                     {% endif %}
+                >
+                  <div class="line-content">
+                    <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
+                    {% if ev.type == 'lesson' %}
+                      <div>{{ ev.subject }}</div>
+                      <div>{{ ev.teacher }}</div>
+                      <div>{{ ev.place }}</div>
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
+                    {% else %}
+                      <div>{{ ev.description }}</div>
+                      {% if ev.place %}<div><em>{{ ev.place }}</em></div>{% endif %}
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
+                      {% if ev.attachment %}
+                        <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
+                      {% endif %}
+                      <button
+                        class="delete-task-button"
+                        data-task-id="{{ ev.id }}"
+                        style="color: red; margin-top:5px;"
+                      >
+                        Удалить
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endwith %}
+              {% endfor %}
             </div>
-          {% endwith %}
+          </div>
         {% endfor %}
       </div>
-    {% endfor %}
-  </div>
 
-  {# Третья строка: Вс #}
-  <div class="schedule-row third-row">
-    {% for date, lessons_map in schedule_by_date|slice:"6:7" %}
-      <div class="day-column {{ date|date:'EEEE'|lower }}">
-        <div class="day-header">{{ date|date:"l, d F" }}</div>
-        {% for time in time_slots %}
-          {% with les=lessons_map|dict_get:time %}
-            <div class="schedule-line" onclick="openModal(
-                   '{{ date|date:"l" }}',
-                   '{{ time }}',
-                   '{{ les.subject|default:''|escapejs }}',
-                   '{{ les.teacher|default:''|escapejs }}',
-                   '{{ les.place|default:''|escapejs }}'
-                 )">
-              <div class="line-content">
-                {% if les %}
-                  <div><strong>{{ les.start_time }}–{{ les.end_time }}</strong></div>
-                  <div>{{ les.subject }}</div>
-                  <div>{{ les.teacher }}</div>
-                  <div>{{ les.place }}</div>
-                {% else %}
-                  <div>{{ time }}</div>
-                {% endif %}
-              </div>
+      {# ВС #}
+      <div class="schedule-row third-row">
+        {% for date, events in schedule_by_date|slice:"6:7" %}
+          <div class="day-column {{ date|date:'EEEE'|lower }}">
+            <div class="day-header">{{ date|date:"l, d F" }}</div>
+            <button class="add-task-button" data-date="{{ date|date:'Y-m-d' }}">Создать задачу</button>
+            <div class="events-list">
+              {% for ev in events %}
+                {% with st=ev.start_time en=ev.end_time notes=ev.notes %}
+                <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
+                     data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
+                     data-notes="{{ notes|default:'' }}"
+                     data-type="{{ ev.type }}"
+                     data-day="{{ date|date:'d.m.Y' }}"
+                     data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     {% if ev.type == 'lesson' %}
+                       data-subject="{{ ev.subject }}"
+                       data-teacher="{{ ev.teacher }}"
+                       data-place="{{ ev.place }}"
+                     {% else %}
+                       data-description="{{ ev.description }}"
+                       data-place="{{ ev.place }}"
+                       data-task-id="{{ ev.id }}"
+                     {% endif %}
+                >
+                  <div class="line-content">
+                    <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
+                    {% if ev.type == 'lesson' %}
+                      <div>{{ ev.subject }}</div>
+                      <div>{{ ev.teacher }}</div>
+                      <div>{{ ev.place }}</div>
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
+                    {% else %}
+                      <div>{{ ev.description }}</div>
+                      {% if ev.place %}<div><em>{{ ev.place }}</em></div>{% endif %}
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
+                      {% if ev.attachment %}
+                        <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
+                      {% endif %}
+                      <button
+                        class="delete-task-button"
+                        data-task-id="{{ ev.id }}"
+                        style="color: red; margin-top:5px; align: center;"
+                      >
+                        Удалить
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endwith %}
+              {% endfor %}
             </div>
-          {% endwith %}
+          </div>
         {% endfor %}
       </div>
-    {% endfor %}
-  </div>
-</div>
+    </div>
   {% endif %}
 </div>
 
-{# Модальное окно #}
-<div id="modal" class="modal hidden">
+{# Модалка пары #}
+<div id="lesson-modal" class="modal hidden">
   <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <h3 style="text-align: center;">Детали</h3>
-    <div id="modal-body">
-      <p><strong>День:</strong> <span id="modal-day"></span></p>
-      <p><strong>Время:</strong> <span id="modal-time"></span></p>
-      <p><strong>Дисциплина:</strong> <span id="modal-discipline"></span></p>
-      <p><strong>Преподаватель:</strong> <span id="modal-teacher"></span></p>
-      <p><strong>Аудитория:</strong> <span id="modal-place"></span></p>
-
-      <label for="notes">Заметки:</label>
-      <textarea id="notes" rows="3" placeholder="Введите заметку..."></textarea>
-
-      <label for="attachments">Вложения:</label>
-      <input type="file" id="attachments" multiple>
+    <span class="close" onclick="closeLessonModal()">&times;</span>
+    <h3 style="text-align:center;">Детали пары</h3>
+    <div id="lesson-modal-body">
+      <p><strong>День:</strong> <span id="lesson-day"></span></p>
+      <p><strong>Время:</strong> <span id="lesson-time"></span></p>
+      <p><strong>Дисциплина:</strong> <span id="lesson-subject"></span></p>
+      <p><strong>Преподаватель:</strong> <span id="lesson-teacher"></span></p>
+      <p><strong>Аудитория:</strong> <span id="lesson-place"></span></p>
+      <label for="lesson-notes">Заметки:</label>
+      <textarea id="lesson-notes" rows="3" placeholder="Введите заметку..."></textarea>
+      <p>
+        <label>
+          Выполнено <input type="checkbox" id="lesson-done">
+        </label>
+      </p>
     </div>
   </div>
 </div>
 
+{# Модалка задачи #}
+<div id="task-detail-modal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close" onclick="closeTaskDetailModal()">&times;</span>
+    <h3 style="text-align:center;">Детали задачи</h3>
+    <div id="task-detail-modal-body">
+      <p><strong>День:</strong> <span id="task-day"></span></p>
+      <p><strong>Время:</strong> <span id="task-time"></span></p>
+      <p><strong>Описание:</strong> <span id="task-desc"></span></p>
+      <p><strong>Место:</strong> <span id="task-place"></span></p>
+      <label for="task-notes-detail">Заметки:</label>
+      <textarea id="task-notes-detail" rows="3" placeholder="Введите заметку..."></textarea>
+      <p>
+        <label>
+          Выполнено <input type="checkbox" id="task-done">
+        </label>
+      </p>
+    </div>
+  </div>
+</div>
+
+
+{# Модалка создания задачи #}
+<div id="task-modal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close" onclick="closeTaskModal()">&times;</span>
+    <h3 style="text-align:center;">Новая задача</h3>
+    <form id="task-form" method="post" action="{% url 'home:create_task' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="group" value="{{ selected_group }}">
+      <input type="hidden" name="date" id="task-date">
+
+      <div class="input-block">
+        <label for="task-time">Время начала:</label>
+        <input type="time" id="task-time" name="start_time" required>
+      </div>
+
+      <div class="input-block">
+        <label for="task-end-time">Время окончания:</label>
+        <input type="time" id="task-end-time" name="end_time">
+      </div>
+
+      <div class="input-block">
+        <label for="task-place">Место:</label>
+        <input type="text" id="task-place" name="place">
+      </div>
+
+      <div class="input-block">
+        <label for="task-desc">Описание:</label>
+        <textarea id="task-desc" name="description" required></textarea>
+      </div>
+
+      <div class="input-block">
+        <label for="task-notes">Заметки:</label>
+        <textarea id="task-notes" name="notes"></textarea>
+      </div>
+
+      <div class="input-block">
+        <label for="task-file">Прикрепить файл:</label>
+        <input type="file" id="task-file" name="attachment">
+      </div>
+
+      <div class="input-block">
+        <label><input type="checkbox" name="done"> Выполнено</label>
+      </div>
+
+      <button type="submit" class="auth-button">Сохранить задачу</button>
+    </form>
+  </div>
+</div>
+
+{# Скрипты: модалки, заметки, статусы, стрелки, поиск #}
 <script>
-  // ===== Хранилище заметок =====
   const storageKey = 'planora_notes';
   let allNotes = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
-  // ===== Модалка =====
-  function openModal(day, time, subject, teacher, place) {
-    const wi = document.querySelector('.week-info');
-    const weekStart = wi.dataset.weekStart; // "YYYY-MM-DD"
-    const key = `${weekStart}_${day}_${time}`;
+  function openLessonModal(day, time, subject, teacher, place, key) {
+    document.getElementById('lesson-day').innerText = day;
+    document.getElementById('lesson-time').innerText = time;
+    document.getElementById('lesson-subject').innerText = subject;
+    document.getElementById('lesson-teacher').innerText = teacher;
+    document.getElementById('lesson-place').innerText = place;
 
-    document.getElementById('modal-day').innerText        = day;
-    document.getElementById('modal-time').innerText       = time;
-    document.getElementById('modal-discipline').innerText = subject;
-    document.getElementById('modal-teacher').innerText    = teacher;
-    document.getElementById('modal-place').innerText      = place;
+    const noteData = allNotes[key] || {};
+    document.getElementById('lesson-notes').value = noteData.note || '';
+    document.getElementById('lesson-done').checked = noteData.done || false;
 
-    document.getElementById('notes').value = allNotes[key] || '';
-
-    const modal = document.getElementById('modal');
+    const modal = document.getElementById('lesson-modal');
     modal.dataset.currentKey = key;
     modal.classList.remove('hidden');
     modal.style.display = 'block';
   }
 
-  function closeModal() {
-    const modal = document.getElementById('modal');
+  function closeLessonModal() {
+    const modal = document.getElementById('lesson-modal');
     const key = modal.dataset.currentKey;
-    allNotes[key] = document.getElementById('notes').value;
+    const note = document.getElementById('lesson-notes').value;
+    const done = document.getElementById('lesson-done').checked;
+    allNotes[key] = { note, done };
     localStorage.setItem(storageKey, JSON.stringify(allNotes));
+
+    const cell = document.querySelector(`.schedule-line[data-key="${key}"]`);
+    if (cell) {
+      cell.classList.toggle('done', done);
+      cell.classList.toggle('pending', !done);
+    }
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+
+
+  function openTaskDetailModal(day, time, desc, place, key, taskId) {
+    document.getElementById('task-day').innerText = day;
+    document.getElementById('task-time').innerText = time;
+    document.getElementById('task-desc').innerText = desc;
+    document.getElementById('task-place').innerText = place;
+
+    const noteData = allNotes[key] || {};
+    document.getElementById('task-notes-detail').value = noteData.note || '';
+    document.getElementById('task-done').checked = noteData.done || false;
+
+    const modal = document.getElementById('task-detail-modal');
+    modal.dataset.currentKey = key;
+    //document.getElementById('delete-task-button').dataset.taskId = taskId;
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'block';
+  }
+
+  function closeTaskDetailModal() {
+    const modal = document.getElementById('task-detail-modal');
+    const key = modal.dataset.currentKey;
+    const note = document.getElementById('task-notes-detail').value;
+    const done = document.getElementById('task-done').checked;
+    allNotes[key] = { note, done };
+    localStorage.setItem(storageKey, JSON.stringify(allNotes));
+
+    const cell = document.querySelector(`.schedule-line[data-key="${key}"]`);
+    if (cell) {
+      cell.classList.toggle('done', done);
+      cell.classList.toggle('pending', !done);
+    }
 
     modal.classList.add('hidden');
     modal.style.display = 'none';
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    // ===== Навигация стрелками =====
-    document.querySelector('.prev-week')?.addEventListener('click', () => {
-      const dateInput = document.getElementById('scheduleDate');
-      if (!dateInput.value) return;
-      
-      const currentDate = new Date(dateInput.value);
-      currentDate.setDate(currentDate.getDate() - 7);
-      
-      const y = currentDate.getFullYear(),
-            m = String(currentDate.getMonth() + 1).padStart(2, '0'),
-            d = String(currentDate.getDate()).padStart(2, '0');
-      
-      dateInput.value = `${y}-${m}-${d}`;
-      document.querySelector('.schedule-form').submit();
+  // открытие модального окна "Создать задачу"
+    function openTaskModal(date) {
+      document.getElementById('task-date').value = date;
+      const m = document.getElementById('task-modal');
+      m.classList.remove('hidden');
+      m.style.display = 'block';
+    } 
+
+    // Крестик на модальном окне "Создать задачу"
+    function closeTaskModal() {
+      const modal = document.getElementById('task-modal');
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.schedule-line').forEach(line => {
+      line.addEventListener('click', (e) => {
+        e.stopPropagation(); // Чтобы кнопка "Удалить" не перехватывала клик
+
+        const type = line.dataset.type;
+        const key = line.dataset.key;
+        const day = line.dataset.day;
+        const time = line.dataset.time;
+        const notes = line.dataset.notes || '';
+
+        if (type === 'lesson') {
+          const subject = line.dataset.subject;
+          const teacher = line.dataset.teacher;
+          const place = line.dataset.place;
+          openLessonModal(day, time, subject, teacher, place, key);
+        } else if (type === 'task') {
+          const desc = line.dataset.description;
+          const place = line.dataset.place;
+          const taskId = line.dataset.taskId;
+          openTaskDetailModal(day, time, desc, place, key, taskId);
+        }
+      });
     });
 
-    document.querySelector('.next-week')?.addEventListener('click', () => {
-      const dateInput = document.getElementById('scheduleDate');
-      if (!dateInput.value) return;
-      
-      const currentDate = new Date(dateInput.value);
-      currentDate.setDate(currentDate.getDate() + 7);
-      
-      const y = currentDate.getFullYear(),
-            m = String(currentDate.getMonth() + 1).padStart(2, '0'),
-            d = String(currentDate.getDate()).padStart(2, '0');
-      
-      dateInput.value = `${y}-${m}-${d}`;
-      document.querySelector('.schedule-form').submit();
+    // Закрытие модального окна создания задачи при клике вне окна
+    window.addEventListener('click', function (event) {
+      const taskModal = document.getElementById('task-modal');
+      if (event.target === taskModal) {
+        closeTaskModal();
+      }
     });
 
-    // ===== Поиск =====
-    const input = document.getElementById('search-input');
-    input.addEventListener('input', function() {
-      const q = this.value.trim().toLowerCase();
-      document.querySelectorAll('.schedule-line').forEach(line => {
-        const text = (line.querySelector('.line-content')?.innerText || '').toLowerCase();
-        line.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+    // Обработка кнопки "Создать задачу"
+    document.querySelectorAll('.add-task-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const date = button.dataset.date;
+      openTaskModal(date);
+    });
+  });
+
+    // стрелки навигации
+    const wi  = document.querySelector('.week-info'),
+          grp = wi.dataset.group,
+          [wy,wm,wd] = wi.dataset.weekStart.split('-').map(n=>+n),
+          form = document.querySelector('.schedule-form'),
+          dateInput = document.getElementById('scheduleDate');
+
+    function shiftWeek(delta){
+      let dt=new Date(wy,wm-1,wd); dt.setDate(dt.getDate()+delta);
+      const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'),
+            d=String(dt.getDate()).padStart(2,'0'), newDate=`${y}-${m}-${d}`;
+      dateInput.value=newDate; form.submit();
+    }
+    document.querySelector('.prev-week').onclick = ()=>shiftWeek(-7);
+    document.querySelector('.next-week').onclick = ()=>shiftWeek(+7);
+
+    // поиск
+    document.getElementById('search-input').addEventListener('input', function(){
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('.schedule-line').forEach(line=>{
+        const content = line.querySelector('.line-content').innerText.toLowerCase();
+        const notes   = (line.dataset.notes   || '').toLowerCase();
+        const desc    = (line.dataset.desc    || '').toLowerCase();
+        const subj    = (line.dataset.subject || '').toLowerCase();
+        const haystack = content + ' ' + notes + ' ' + desc + ' ' + subj;
+        line.style.display = haystack.includes(q) ? '' : 'none';
       });
     });
   });
 </script>
 
 
-{% endblock %}
+<script>
+document.querySelectorAll('.task-checkbox').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        const taskId = this.dataset.taskId;
 
+        fetch(`/toggle_task_done/${taskId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const taskDiv = document.getElementById(`task-${taskId}`);
+                if (data.done) {
+                    taskDiv.classList.remove('not-done');
+                    taskDiv.classList.add('done');
+                } else {
+                    taskDiv.classList.remove('done');
+                    taskDiv.classList.add('not-done');
+                }
+            }
+        });
+    });
+});
+
+// Функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.delete-task-button').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      const id = btn.dataset.taskId;
+      if (!confirm('Удалить задачу?')) return;
+
+      // собрать CSRF‑токен
+      function getCookie(name) {
+        let v = null;
+        document.cookie.split(';').forEach(c => {
+          let [k,val] = c.trim().split('=');
+          if (k === name) v = decodeURIComponent(val);
+        });
+        return v;
+      }
+      const csrftoken = getCookie('csrftoken');
+
+      try {
+        const resp = await fetch("{% url 'home:delete_task' %}", {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ task_id: id })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          // либо удаляем сразу из DOM:
+          //btn.closest('.schedule-line').remove();
+          // либо перезагружаем страницу:
+          location.reload();
+        } else {
+          alert('Ошибка: ' + data.error);
+        }
+      } catch (err) {
+        alert('Сетевая ошибка');
+      }
+    });
+  });
+});
+</script>
+
+<style>
+  input[type="text"],
+  input[type="time"],
+  input[type="date"],
+  input[type="file"],
+  textarea {
+    color: black; /* цвет текста */
+    background-color: white; /* фон */
+    border: 1px solid #ccc;
+    padding: 6px;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  textarea::placeholder,
+  input::placeholder {
+    color: #888;
+  }
+</style>
+
+{% endblock %}
