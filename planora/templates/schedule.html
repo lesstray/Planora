@@ -5,6 +5,7 @@
 {% block title %}Planora – Расписание{% endblock %}
 {% block content %}
 <div class="home-container">
+  <!-- Управление расписанием -->
   <div class="schedule-controls">
     <form method="GET" action="{% url 'home:schedule' %}" class="schedule-form">
       <div class="form-row">
@@ -23,17 +24,17 @@
     </form>
   </div>
 
+  <!-- Поиск -->
   <div class="search-container">
     <input type="text" id="search-input"
            placeholder="Поиск по предмету, преподавателю, аудитории, заметкам...">
   </div>
 
   {% if schedule_by_date %}
-    <div 
-      class="week-info"
-      data-week-start="{{ week_start|date:'Y-m-d' }}"
-      data-group="{{ selected_group }}"
-    >
+    <!-- Навигация по неделям -->
+    <div class="week-info"
+         data-week-start="{{ week_start|date:'Y-m-d' }}"
+         data-group="{{ selected_group }}">
       <span class="prev-week">&larr;</span>
       <strong>Неделя:&nbsp;</strong>
       {{ week_start|date:"d F Y" }} – {{ week_end|date:"d F Y" }}
@@ -41,123 +42,132 @@
     </div>
 
     <div class="schedule-wrapper">
-      {# — ПН–СР — #}
+      {# ПН–СР #}
       <div class="schedule-row first-row">
         {% for date, events in schedule_by_date|slice:":3" %}
           <div class="day-column">
             <div class="day-header">{{ date|date:"l, d F" }}</div>
             <button class="add-task-button" data-date="{{ date|date:'Y-m-d' }}">Создать задачу</button>
             <div class="events-list">
-              {% for time, ev in events %}
-                <div class="schedule-line {% if ev.done %}done{% elif ev.type == "task" %}pending{% endif %}"
-                     data-key="{{ date|date:'Y-m-d' }}_{{ time }}">
+              {% for ev in events %}
+                {% with st=ev.start_time en=ev.end_time notes=ev.notes %}
+                <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
+                     data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
+                     data-notes="{{ notes|default:'' }}"
+                >
                   <div class="line-content">
-                    <div>
-                      <strong>
-                        {% if ev.start_time %}
-                          {{ ev.start_time }}{% if ev.end_time %}–{{ ev.end_time }}{% endif %}
-                        {% else %}
-                          {{ time }}
-                        {% endif %}
-                      </strong>
-                    </div>
+                    <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
                     {% if ev.type == 'lesson' %}
                       <div>{{ ev.subject }}</div>
                       <div>{{ ev.teacher }}</div>
                       <div>{{ ev.place }}</div>
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
                     {% else %}
-                      <div><strong>{{ ev.start_time }}{% if ev.end_time %}–{{ ev.end_time }}{% endif %}</strong></div>
                       <div>{{ ev.description }}</div>
                       {% if ev.place %}<div><em>{{ ev.place }}</em></div>{% endif %}
-                      {% if ev.notes %}<div class="notes">{{ ev.notes }}</div>{% endif %}
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
                       {% if ev.attachment %}
                         <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
                       {% endif %}
+                      <button
+                        class="delete-task-button"
+                        data-task-id="{{ ev.id }}"
+                        style="color: red; margin-top:5px;"
+                      >
+                        Удалить
+                      </button>
                     {% endif %}
                   </div>
                 </div>
+                {% endwith %}
               {% endfor %}
             </div>
           </div>
         {% endfor %}
       </div>
 
-      {# — ЧТ–СБ — #}
+      {# ЧТ–СБ #}
       <div class="schedule-row second-row">
         {% for date, events in schedule_by_date|slice:"3:6" %}
           <div class="day-column {{ date|date:'EEEE'|lower }}">
             <div class="day-header">{{ date|date:"l, d F" }}</div>
             <button class="add-task-button" data-date="{{ date|date:'Y-m-d' }}">Создать задачу</button>
             <div class="events-list">
-              {% for time, ev in events %}
-                <div class="schedule-line {% if ev.done %}done{% elif ev.type == "task" %}pending{% endif %}"
-                     data-key="{{ date|date:'Y-m-d' }}_{{ time }}">
+              {% for ev in events %}
+                {% with st=ev.start_time en=ev.end_time notes=ev.notes %}
+                <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
+                     data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
+                     data-notes="{{ notes|default:'' }}"
+                >
                   <div class="line-content">
-                    <div>
-                      <strong>
-                        {% if ev.start_time %}
-                          {{ ev.start_time }}{% if ev.end_time %}–{{ ev.end_time }}{% endif %}
-                        {% else %}
-                          {{ time }}
-                        {% endif %}
-                      </strong>
-                    </div>
+                    <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
                     {% if ev.type == 'lesson' %}
                       <div>{{ ev.subject }}</div>
                       <div>{{ ev.teacher }}</div>
                       <div>{{ ev.place }}</div>
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
                     {% else %}
-                      <div><strong>{{ ev.start_time }}{% if ev.end_time %}–{{ ev.end_time }}{% endif %}</strong></div>
                       <div>{{ ev.description }}</div>
                       {% if ev.place %}<div><em>{{ ev.place }}</em></div>{% endif %}
-                      {% if ev.notes %}<div class="notes">{{ ev.notes }}</div>{% endif %}
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
                       {% if ev.attachment %}
                         <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
                       {% endif %}
+                      <button
+                        class="delete-task-button"
+                        data-task-id="{{ ev.id }}"
+                        style="color: red; margin-top:5px;"
+                      >
+                        Удалить
+                      </button>
                     {% endif %}
                   </div>
                 </div>
+                {% endwith %}
               {% endfor %}
             </div>
           </div>
         {% endfor %}
       </div>
 
-      {# — ВС — #}
+      {# ВС #}
       <div class="schedule-row third-row">
         {% for date, events in schedule_by_date|slice:"6:7" %}
           <div class="day-column {{ date|date:'EEEE'|lower }}">
             <div class="day-header">{{ date|date:"l, d F" }}</div>
             <button class="add-task-button" data-date="{{ date|date:'Y-m-d' }}">Создать задачу</button>
             <div class="events-list">
-              {% for time, ev in events %}
-                <div class="schedule-line {% if ev.done %}done{% elif ev.type == "task" %}pending{% endif %}"
-                     data-key="{{ date|date:'Y-m-d' }}_{{ time }}">
+              {% for ev in events %}
+                {% with st=ev.start_time en=ev.end_time notes=ev.notes %}
+                <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
+                     data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
+                     data-notes="{{ notes|default:'' }}"
+                >
                   <div class="line-content">
-                    <div>
-                      <strong>
-                        {% if ev.start_time %}
-                          {{ ev.start_time }}{% if ev.end_time %}–{{ ev.end_time }}{% endif %}
-                        {% else %}
-                          {{ time }}
-                        {% endif %}
-                      </strong>
-                    </div>
+                    <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
                     {% if ev.type == 'lesson' %}
                       <div>{{ ev.subject }}</div>
                       <div>{{ ev.teacher }}</div>
                       <div>{{ ev.place }}</div>
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
                     {% else %}
-                      <div><strong>{{ ev.start_time }}{% if ev.end_time %}–{{ ev.end_time }}{% endif %}</strong></div>
                       <div>{{ ev.description }}</div>
                       {% if ev.place %}<div><em>{{ ev.place }}</em></div>{% endif %}
-                      {% if ev.notes %}<div class="notes">{{ ev.notes }}</div>{% endif %}
+                      {% if notes %}<div class="notes">{{ notes }}</div>{% endif %}
                       {% if ev.attachment %}
                         <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
                       {% endif %}
+                      <button
+                        class="delete-task-button"
+                        data-task-id="{{ ev.id }}"
+                        style="color: red; margin-top:5px; align: center;"
+                      >
+                        Удалить
+                      </button>
                     {% endif %}
                   </div>
                 </div>
+                {% endwith %}
               {% endfor %}
             </div>
           </div>
@@ -167,6 +177,25 @@
   {% endif %}
 </div>
 
+{# Модалка деталей #}
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 style="text-align:center;">Детали</h3>
+    <div id="modal-body">
+      <p><strong>Время:</strong> <span id="modal-time"></span></p>
+      <p><strong>Тип:</strong> <span id="modal-type"></span></p>
+      <p id="modal-subject"><strong>Дисциплина:</strong> <span></span></p>
+      <p id="modal-teacher"><strong>Преподаватель:</strong> <span></span></p>
+      <p id="modal-place"><strong>Аудитория:</strong> <span></span></p>
+      <p id="modal-desc"><strong>Описание:</strong> <span></span></p>
+      <p><label>Выполнено <input type="checkbox" id="modal-done"></label></p>
+      <label for="notes">Заметки:</label>
+      <textarea id="notes" rows="3" placeholder="Введите заметку..."></textarea>
+      <button class="delete-task-button" data-task-id="" style="color:red;margin-top:5px;">Удалить</button>
+    </div>
+  </div>
+</div>
 
 {# Модалка деталей пары/задачи #}
 <div id="modal" class="modal hidden">
@@ -358,15 +387,17 @@
     document.querySelector('.next-week').onclick = ()=>shiftWeek(+7);
 
     // поиск
-    document.getElementById('search-input')
-      .addEventListener('input',function(){
-        const q=this.value.toLowerCase();
-        document.querySelectorAll('.schedule-line')
-          .forEach(line=>{
-            const t=line.querySelector('.line-content').innerText.toLowerCase();
-            line.style.display=(t.includes(q)||!q)?'':'none';
-          });
+    document.getElementById('search-input').addEventListener('input', function(){
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('.schedule-line').forEach(line=>{
+        const content = line.querySelector('.line-content').innerText.toLowerCase();
+        const notes   = (line.dataset.notes   || '').toLowerCase();
+        const desc    = (line.dataset.desc    || '').toLowerCase();
+        const subj    = (line.dataset.subject || '').toLowerCase();
+        const haystack = content + ' ' + notes + ' ' + desc + ' ' + subj;
+        line.style.display = haystack.includes(q) ? '' : 'none';
       });
+    });
   });
 </script>
 
@@ -417,70 +448,48 @@ function getCookie(name) {
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Получаем все кнопки удаления
-  const deleteButtons = document.querySelectorAll('.delete-task-button');
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.delete-task-button').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      const id = btn.dataset.taskId;
+      if (!confirm('Удалить задачу?')) return;
 
-  deleteButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const taskId = this.dataset.taskId;
-
-      if (!taskId) {
-        alert("Не найден id задачи");
-        return;
-      }
-
-      if (!confirm("Вы действительно хотите удалить эту задачу?")) {
-        return;
-      }
-
-      // Получаем csrf токен из cookie (требуется для POST в Django)
+      // собрать CSRF‑токен
       function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-          const cookies = document.cookie.split(';');
-          for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
-            }
-          }
-        }
-        return cookieValue;
+        let v = null;
+        document.cookie.split(';').forEach(c => {
+          let [k,val] = c.trim().split('=');
+          if (k === name) v = decodeURIComponent(val);
+        });
+        return v;
       }
       const csrftoken = getCookie('csrftoken');
 
-      fetch("{% url 'home:delete_task' %}", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrftoken,
-        },
-        body: new URLSearchParams({
-          'task_id': taskId
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
+      try {
+        const resp = await fetch("{% url 'home:delete_task' %}", {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ task_id: id })
+        });
+        const data = await resp.json();
         if (data.success) {
-          alert('Задача успешно удалена');
-          // Можно убрать удалённый элемент из DOM, например:
-          // button.closest('.task-item').remove();
-          // Или просто перезагрузить страницу:
+          // либо удаляем сразу из DOM:
+          //btn.closest('.schedule-line').remove();
+          // либо перезагружаем страницу:
           location.reload();
         } else {
           alert('Ошибка: ' + data.error);
         }
-      })
-      .catch(error => {
-        alert('Ошибка запроса: ' + error);
-      });
+      } catch (err) {
+        alert('Сетевая ошибка');
+      }
     });
   });
 });
 </script>
-
 
 <style>
   input[type="text"],
@@ -502,6 +511,5 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #888;
   }
 </style>
-
 
 {% endblock %}
