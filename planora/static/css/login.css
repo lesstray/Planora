@@ -122,12 +122,12 @@ form {
 
 .input-block {
     position: relative;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1px;
 }
 
 .input-block > label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 10px;
     color: rgba(255, 255, 255, 0.8);
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -144,6 +144,7 @@ form {
     outline: none;
     transition: all 0.3s ease;
     border: 1px solid transparent;
+
 }
 
 .input-block > input:focus {
@@ -159,7 +160,7 @@ form {
 .button-block {
     display: flex;
     justify-content: center;
-    margin-top: 1rem;
+    margin-top: -10px;
 }
 
 button {
@@ -175,6 +176,7 @@ button {
     letter-spacing: 1px;
     font-weight: 500;
     min-width: 200px;
+
 }
 
 button:hover {
