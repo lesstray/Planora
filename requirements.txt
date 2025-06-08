@@ -13,3 +13,5 @@ bs4
 lxml
 dateparser
 phonenumbers
+pytz
+icalendar
