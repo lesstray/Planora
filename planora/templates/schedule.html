@@ -40,7 +40,9 @@
       {{ week_start|date:"d F Y" }} – {{ week_end|date:"d F Y" }}
       <span class="next-week">&rarr;</span>
     </div>
-
+    <a href="{% url 'home:export_ics' %}?groupNumber={{ selected_group }}&scheduleDate={{ selected_date }}" class="auth-button" style="margin-left:1em">
+      Экспорт в календарь (.ics)
+    </a>
     <div class="schedule-wrapper">
       {# ПН–СР #}
       <div class="schedule-row first-row">
