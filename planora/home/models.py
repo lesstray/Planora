@@ -20,8 +20,23 @@ class Task(models.Model):
     def __str__(self):
         return f"{self.group} {self.date} {self.start_time}-{self.end_time} {self.description[:20]}"
 
+
 class Group(models.Model):
     title = models.CharField(max_length=50, default='') # Номер группы
 
     def __str__(self):
         return self.title
+
+
+class Subject(models.Model):
+    name = models.CharField(max_length=200, unique=True, verbose_name="Предмет")
+
+    def __str__(self):
+        return self.name
+
+
+class StudyGroup(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Учебная группа")
+
+    def __str__(self):
+        return self.name
