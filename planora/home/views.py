@@ -15,7 +15,7 @@ from .serializers import (
 	GroupSerializer,
 )
 from django.contrib.auth import get_user_model
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 
 # загрузка расписания
@@ -24,6 +24,12 @@ import dateparser
 from datetime import datetime as dt, timedelta
 from django.views.decorators.http import require_POST
 from .ruz_parser import get_schedule
+from django.shortcuts import render
+import dateparser
+from .ruz_parser import get_schedule
+from datetime import datetime, timedelta
+from django.urls import reverse
+from django.http import JsonResponse
 #
 
 User = get_user_model()
@@ -175,84 +181,154 @@ def home_view(request):
 
 # Для расписания
 def _make_time_slots(start="08:00", end="20:00", step_hours=2):
-	fmt = "%H:%M"
-	t0 = dt.strptime(start, fmt)
-	t_end = dt.strptime(end, fmt)
-	slots = []
-	while t0 < t_end:
-		# Формируем слоты как "10:00" вместо "10:00–12:00"
-		slots.append(t0.strftime(fmt))
-		t0 += timedelta(hours=step_hours)
-	return slots  # ["08:00", "10:00", "12:00", ...]
-
-
-from django.shortcuts import render
-import dateparser
-from .ruz_parser import get_schedule
-from datetime import datetime, timedelta
-
+    fmt = "%H:%M"
+    t0 = dt.strptime(start, fmt)
+    t_end = dt.strptime(end, fmt)
+    slots = []
+    while t0 < t_end:
+        # Формируем слоты как "10:00" вместо "10:00–12:00"
+        slots.append(t0.strftime(fmt))
+        t0 += timedelta(hours=step_hours)
+    return slots  # ["08:00", "10:00", "12:00", ...]
 
 
 def schedule(request):
-	context = {
-		'time_slots': _make_time_slots("08:00", "20:00", 2),
-		'selected_group': '',
-		'selected_date': '',
-	}
+    context = {
+        'time_slots': _make_time_slots("08:00", "20:00", 2),
+        'selected_group': '',
+        'selected_date': '',
+    }
 
-	if request.method == 'GET':
-		group = request.GET.get('groupNumber', '')
-		date_str = request.GET.get('scheduleDate', '')
-	else:
-		group = request.POST.get('groupNumber', '')
-		date_str = request.POST.get('scheduleDate', '')
+    if request.method == 'GET':
+        group = request.GET.get('groupNumber', '')
+        date_str = request.GET.get('scheduleDate', '')
+    else:
+        group = request.POST.get('groupNumber', '')
+        date_str = request.POST.get('scheduleDate', '')
 
-	context['selected_group'] = group
-	context['selected_date'] = date_str
+    context['selected_group'] = group
+    context['selected_date'] = date_str
 
-	if group and date_str:
-		try:
-			selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-		except ValueError:
-			context['error_message'] = "Неверный формат даты"
-			return render(request, 'schedule.html', context)
+    if group and date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            context['error_message'] = "Неверный формат даты"
+            return render(request, 'schedule.html', context)
 
-		week_start = selected_date - timedelta(days=selected_date.weekday())
-		week_end = week_start + timedelta(days=6)
+        week_start = selected_date - timedelta(days=selected_date.weekday())
+        week_end = week_start + timedelta(days=6)
 
-		#print(f"Getting schedule for group={group}, date={week_start.isoformat()}")
-		raw = get_schedule(group, week_start.isoformat())
-		#print(f"Result: {raw}")
+        #print(f"Getting schedule for group={group}, date={week_start.isoformat()}")
+        raw = get_schedule(group, week_start.isoformat())
+        #print(f"Result: {raw}")
 
-		if 'error' in raw:
-			context['error_message'] = raw['error']
-			return render(request, 'schedule.html', context)
+        tasks = Task.objects.filter(
+            group=group,
+            date__gte=week_start,
+            date__lte=week_end
+        ).values('date', 'start_time', 'description', 'done')
 
-		# Создаем список дат с понедельника по воскресенье
-		dates = [week_start + timedelta(days=i) for i in range(7)]
-		
-		# Формируем расписание по дням
-		schedule_by_date = []
-		for d in dates:
-			date_key = d.strftime('%Y-%m-%d')
-			lessons = raw['schedule'].get(date_key, [])
-			
-			# Создаем словарь для быстрого доступа по времени начала
-			day_map = {}
-			for les in lessons:
-				if les.get('start_time'):
-					# Обработка формата времени
-					if ':' in les['start_time']:
-						time_parts = les['start_time'].split(':')
-						formatted_time = f"{time_parts[0]}:{time_parts[1]}"
-						day_map[formatted_time] = les
-			
-			schedule_by_date.append((d, day_map))
+        if 'error' in raw:
+            context['error_message'] = raw['error']
+            return render(request, 'schedule.html', context)
 
-		context.update({
-			'week_start': week_start,
-			'week_end': week_end,
-			'schedule_by_date': schedule_by_date,
-		})
+        # Создаем список дат с понедельника по воскресенье
+        dates = [week_start + timedelta(days=i) for i in range(7)]
+        
+        # Формируем расписание по дням
+        schedule_by_date = []
+        for d in dates:
+            date_key = d.strftime('%Y-%m-%d')
+            lessons = raw['schedule'].get(date_key, [])
+            
+            # Создаем словарь для быстрого доступа по времени начала
+            day_map = {}
+            for les in lessons:
+                st = les.get('start_time')
+                if st:
+                    day_map[st] = {
+                        'type':    'lesson',
+                        'subject': les['subject'],
+                        'teacher': les['teacher'],
+                        'place':   les['place'],
+                        'done':    False,
+                    }
 
-	return render(request, 'schedule.html', context)
+            # Задачи из БД
+            for t in filter(lambda t: t['date'] == d, tasks):
+                key = t['start_time'].strftime("%H:%M")
+                day_map[key] = {
+                    'type':        'task',
+                    'description': t['description'],
+                    'done':        t['done'],
+                }
+
+            # Сортируем события по времени
+            sorted_events = [
+                (time, info)
+                for time, info in sorted(
+                    day_map.items(),
+                    key=lambda x: datetime.strptime(x[0], "%H:%M")
+                )
+            ]
+
+            schedule_by_date.append((d, sorted_events))
+
+        context.update({
+            'week_start': week_start,
+            'week_end': week_end,
+            'schedule_by_date': schedule_by_date,
+        })
+
+    return render(request, 'schedule.html', context)
+
+
+@require_POST
+def create_task(request):
+    user = request.user
+    group = request.POST.get('group')
+    date = request.POST.get('date')
+    start_time = request.POST.get('start_time')
+    end_time = request.POST.get('end_time')
+    description = request.POST.get('description')
+    place = request.POST.get('place')
+    notes = request.POST.get('notes')
+    done = request.POST.get('done') == 'on'
+    attachment = request.FILES.get('attachment')
+
+    Task.objects.create(
+        user=user,
+        group=group,
+        date=date,
+        start_time=start_time,
+        end_time=end_time,
+        description=description,
+        place=place,
+        notes=notes,
+        done=done,
+        attachment=attachment
+    )
+    url = reverse('home:schedule') + f"?groupNumber={request.POST['group']}&scheduleDate={request.POST['date']}"
+    return HttpResponseRedirect(url)
+
+
+@require_POST
+def toggle_task_done(request, task_id):
+    task = Task.objects.get(id=task_id)
+    if task.user != request.user:
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    task.done = not task.done
+    task.save()
+    return JsonResponse({'success': True, 'done': task.done})
+
+@require_POST
+def delete_task(request):
+    task_id = request.POST.get('task_id')
+    if not task_id:
+        return JsonResponse({'success': False, 'error': 'task_id не передан'}, status=400)
+
+    task = get_object_or_404(Task, id=task_id, user=request.user)  # если есть связь с пользователем
+
+    task.delete()
+    return JsonResponse({'success': True})

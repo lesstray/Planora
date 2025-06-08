@@ -182,6 +182,8 @@ body {
   margin-left: 1em;
 }
 
+
+
 /* Эффект при наведении */
 .prev-week:hover,
 .next-week:hover {
@@ -354,6 +356,47 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
 }
+
+
+/* Кнопка «Создать задачу» */
+.add-task-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 8px 14px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: 
+      transform 0.2s ease, 
+      box-shadow 0.2s ease,
+      background 0.3s ease;
+}
+
+.add-task-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(45deg, #88d3ce, #6e45e2);
+}
+
+.add-task-button i,
+.add-task-button::before {
+    content: "➕";
+    margin-right: 6px;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.day-column .add-task-button {
+    display: block;
+    margin: 0 auto 12px;
+}
+
 
 /* Иконки */
 .fas {
@@ -892,3 +935,57 @@ mark {
 }
 
 
+/* Стили для статусов задач */
+.schedule-line.pending .line-content {
+    background: rgba(255, 87, 87, 0.2) !important;
+    border: 1px solid rgba(255, 87, 87, 0.4) !important;
+}
+
+.schedule-line.done .line-content {
+    background: rgba(76, 175, 80, 0.2) !important;
+    border: 1px solid rgba(76, 175, 80, 0.4) !important;
+    transition: all 0.3s ease;
+}
+
+/* Для серого фона по умолчанию */
+.schedule-line:not(.pending):not(.done) .line-content {
+    background: rgba(200, 200, 200, 0.1);
+    border: 1px solid rgba(200, 200, 200, 0.2);
+}
+
+.task.done {
+    background-color: #d4edda; /* зелёный */
+}
+
+.task.not-done {
+    background-color: #f8d7da; /* красный */
+}
+
+
+.input-block {
+  margin-bottom: 1em;
+}
+
+.input-block label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+.input-block input,
+.input-block textarea {
+  width: 100%;
+  padding: 0.4em;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.input-block input[type="checkbox"] {
+  width: auto;
+}
+
+.notes {
+  font-style: italic;
+  color: #555;
+}
