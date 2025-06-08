@@ -56,6 +56,18 @@
                 <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
                      data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
                      data-notes="{{ notes|default:'' }}"
+                     data-type="{{ ev.type }}"
+                     data-day="{{ date|date:'d.m.Y' }}"
+                     data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     {% if ev.type == 'lesson' %}
+                       data-subject="{{ ev.subject }}"
+                       data-teacher="{{ ev.teacher }}"
+                       data-place="{{ ev.place }}"
+                     {% else %}
+                       data-description="{{ ev.description }}"
+                       data-place="{{ ev.place }}"
+                       data-task-id="{{ ev.id }}"
+                     {% endif %}
                 >
                   <div class="line-content">
                     <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
@@ -100,6 +112,18 @@
                 <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
                      data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
                      data-notes="{{ notes|default:'' }}"
+                     data-type="{{ ev.type }}"
+                     data-day="{{ date|date:'d.m.Y' }}"
+                     data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     {% if ev.type == 'lesson' %}
+                       data-subject="{{ ev.subject }}"
+                       data-teacher="{{ ev.teacher }}"
+                       data-place="{{ ev.place }}"
+                     {% else %}
+                       data-description="{{ ev.description }}"
+                       data-place="{{ ev.place }}"
+                       data-task-id="{{ ev.id }}"
+                     {% endif %}
                 >
                   <div class="line-content">
                     <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
@@ -144,6 +168,18 @@
                 <div class="schedule-line {% if ev.done %}done{% elif ev.type == 'task' %}pending{% endif %}"
                      data-key="{{ date|date:'Y-m-d' }}_{{ st }}"
                      data-notes="{{ notes|default:'' }}"
+                     data-type="{{ ev.type }}"
+                     data-day="{{ date|date:'d.m.Y' }}"
+                     data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     {% if ev.type == 'lesson' %}
+                       data-subject="{{ ev.subject }}"
+                       data-teacher="{{ ev.teacher }}"
+                       data-place="{{ ev.place }}"
+                     {% else %}
+                       data-description="{{ ev.description }}"
+                       data-place="{{ ev.place }}"
+                       data-task-id="{{ ev.id }}"
+                     {% endif %}
                 >
                   <div class="line-content">
                     <div><strong>{{ st }}{% if en %}–{{ en }}{% endif %}</strong></div>
@@ -179,52 +215,49 @@
   {% endif %}
 </div>
 
-{# Модалка деталей #}
-<div id="modal" class="modal hidden">
+{# Модалка пары #}
+<div id="lesson-modal" class="modal hidden">
   <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <h3 style="text-align:center;">Детали</h3>
-    <div id="modal-body">
-      <p><strong>Время:</strong> <span id="modal-time"></span></p>
-      <p><strong>Тип:</strong> <span id="modal-type"></span></p>
-      <p id="modal-subject"><strong>Дисциплина:</strong> <span></span></p>
-      <p id="modal-teacher"><strong>Преподаватель:</strong> <span></span></p>
-      <p id="modal-place"><strong>Аудитория:</strong> <span></span></p>
-      <p id="modal-desc"><strong>Описание:</strong> <span></span></p>
-      <p><label>Выполнено <input type="checkbox" id="modal-done"></label></p>
-      <label for="notes">Заметки:</label>
-      <textarea id="notes" rows="3" placeholder="Введите заметку..."></textarea>
-      <button class="delete-task-button" data-task-id="" style="color:red;margin-top:5px;">Удалить</button>
+    <span class="close" onclick="closeLessonModal()">&times;</span>
+    <h3 style="text-align:center;">Детали пары</h3>
+    <div id="lesson-modal-body">
+      <p><strong>День:</strong> <span id="lesson-day"></span></p>
+      <p><strong>Время:</strong> <span id="lesson-time"></span></p>
+      <p><strong>Дисциплина:</strong> <span id="lesson-subject"></span></p>
+      <p><strong>Преподаватель:</strong> <span id="lesson-teacher"></span></p>
+      <p><strong>Аудитория:</strong> <span id="lesson-place"></span></p>
+      <label for="lesson-notes">Заметки:</label>
+      <textarea id="lesson-notes" rows="3" placeholder="Введите заметку..."></textarea>
+      <p>
+        <label>
+          Выполнено <input type="checkbox" id="lesson-done">
+        </label>
+      </p>
     </div>
   </div>
 </div>
 
-{# Модалка деталей пары/задачи #}
-<div id="modal" class="modal hidden">
+{# Модалка задачи #}
+<div id="task-detail-modal" class="modal hidden">
   <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <h3 style="text-align:center;">Детали</h3>
-    <div id="modal-body">
-      <p><strong>День:</strong> <span id="modal-day"></span></p>
-      <p><strong>Время:</strong> <span id="modal-time"></span></p>
-      <p><strong>Тип:</strong> <span id="modal-type"></span></p>
-      <p id="modal-subject"><strong>Дисциплина:</strong> <span></span></p>
-      <p id="modal-teacher"><strong>Преподаватель:</strong> <span></span></p>
-      <p id="modal-place"><strong>Аудитория:</strong> <span></span></p>
-      <p id="modal-desc"><strong>Описание:</strong> <span></span></p>
+    <span class="close" onclick="closeTaskDetailModal()">&times;</span>
+    <h3 style="text-align:center;">Детали задачи</h3>
+    <div id="task-detail-modal-body">
+      <p><strong>День:</strong> <span id="task-day"></span></p>
+      <p><strong>Время:</strong> <span id="task-time"></span></p>
+      <p><strong>Описание:</strong> <span id="task-desc"></span></p>
+      <p><strong>Место:</strong> <span id="task-place"></span></p>
+      <label for="task-notes-detail">Заметки:</label>
+      <textarea id="task-notes-detail" rows="3" placeholder="Введите заметку..."></textarea>
       <p>
         <label>
-          Выполнено&nbsp;
-          <input type="checkbox" id="modal-done">
+          Выполнено <input type="checkbox" id="task-done">
         </label>
       </p>
-      <label for="notes">Заметки:</label>
-      <textarea id="notes" rows="3" placeholder="Введите заметку..."></textarea>
-      <button class="delete-task-button" data-task-id="{{ ev.id }}" style="color: red; margin-top:5px;">Удалить
-      </button>
     </div>
   </div>
 </div>
+
 
 {# Модалка создания задачи #}
 <div id="task-modal" class="modal hidden">
@@ -280,41 +313,28 @@
   const storageKey = 'planora_notes';
   let allNotes = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
-  function openModal(day, time, subject, teacher, place, type='lesson', desc='') {
-    const wi = document.querySelector('.week-info');
-    const weekStart = wi.dataset.weekStart;
-    const key = `${weekStart}_${day}_${time}`;
+  function openLessonModal(day, time, subject, teacher, place, key) {
+    document.getElementById('lesson-day').innerText = day;
+    document.getElementById('lesson-time').innerText = time;
+    document.getElementById('lesson-subject').innerText = subject;
+    document.getElementById('lesson-teacher').innerText = teacher;
+    document.getElementById('lesson-place').innerText = place;
 
-    document.getElementById('modal-day').innerText        = day;
-    document.getElementById('modal-time').innerText       = time;
-    document.getElementById('modal-type').innerText       = type === 'lesson' ? 'Пара' : 'Задача';
-    document.getElementById('modal-subject').style.display= type==='lesson'?'block':'none';
-    document.getElementById('modal-teacher').style.display= type==='lesson'?'block':'none';
-    document.getElementById('modal-place').style.display  = type==='lesson'?'block':'none';
-    document.getElementById('modal-desc').style.display   = type==='task'?'block':'none';
+    const noteData = allNotes[key] || {};
+    document.getElementById('lesson-notes').value = noteData.note || '';
+    document.getElementById('lesson-done').checked = noteData.done || false;
 
-    if(type==='lesson'){
-      document.querySelector('#modal-subject span').innerText = subject;
-      document.querySelector('#modal-teacher span').innerText = teacher;
-      document.querySelector('#modal-place span').innerText   = place;
-    } else {
-      document.querySelector('#modal-desc span').innerText    = desc;
-    }
-
-    document.getElementById('notes').value = (allNotes[key]&&allNotes[key].note)||'';
-    document.getElementById('modal-done').checked = (allNotes[key]&&allNotes[key].done)||false;
-
-    const modal = document.getElementById('modal');
+    const modal = document.getElementById('lesson-modal');
     modal.dataset.currentKey = key;
     modal.classList.remove('hidden');
     modal.style.display = 'block';
   }
 
-  function closeModal() {
-    const modal = document.getElementById('modal');
+  function closeLessonModal() {
+    const modal = document.getElementById('lesson-modal');
     const key = modal.dataset.currentKey;
-    const note = document.getElementById('notes').value;
-    const done = document.getElementById('modal-done').checked;
+    const note = document.getElementById('lesson-notes').value;
+    const done = document.getElementById('lesson-done').checked;
     allNotes[key] = { note, done };
     localStorage.setItem(storageKey, JSON.stringify(allNotes));
 
@@ -327,41 +347,89 @@
     modal.style.display = 'none';
   }
 
-  function openTaskModal(date) {
-    document.getElementById('task-date').value = date;
-    const m = document.getElementById('task-modal');
-    m.classList.remove('hidden');
-    m.style.display = 'block';
+
+  function openTaskDetailModal(day, time, desc, place, key, taskId) {
+    document.getElementById('task-day').innerText = day;
+    document.getElementById('task-time').innerText = time;
+    document.getElementById('task-desc').innerText = desc;
+    document.getElementById('task-place').innerText = place;
+
+    const noteData = allNotes[key] || {};
+    document.getElementById('task-notes-detail').value = noteData.note || '';
+    document.getElementById('task-done').checked = noteData.done || false;
+
+    const modal = document.getElementById('task-detail-modal');
+    modal.dataset.currentKey = key;
+    //document.getElementById('delete-task-button').dataset.taskId = taskId;
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'block';
   }
 
-  function closeTaskModal() {
-    const m = document.getElementById('task-modal');
-    m.classList.add('hidden');
-    m.style.display = 'none';
+  function closeTaskDetailModal() {
+    const modal = document.getElementById('task-detail-modal');
+    const key = modal.dataset.currentKey;
+    const note = document.getElementById('task-notes-detail').value;
+    const done = document.getElementById('task-done').checked;
+    allNotes[key] = { note, done };
+    localStorage.setItem(storageKey, JSON.stringify(allNotes));
+
+    const cell = document.querySelector(`.schedule-line[data-key="${key}"]`);
+    if (cell) {
+      cell.classList.toggle('done', done);
+      cell.classList.toggle('pending', !done);
+    }
+
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
   }
+
+  // открытие модального окна "Создать задачу"
+    function openTaskModal(date) {
+      document.getElementById('task-date').value = date;
+      const m = document.getElementById('task-modal');
+      m.classList.remove('hidden');
+      m.style.display = 'block';
+    } 
+
+    // Крестик на модальном окне "Создать задачу"
+    function closeTaskModal() {
+      const modal = document.getElementById('task-modal');
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // инициализация статусов
-    document.querySelectorAll('.schedule-line').forEach(cell=> {
-      const key = cell.dataset.key, info = allNotes[key];
-      if(info){
-        cell.classList.toggle('done', info.done);
-        cell.classList.toggle('pending', !info.done);
-      }
+    document.querySelectorAll('.schedule-line').forEach(line => {
+      line.addEventListener('click', (e) => {
+        e.stopPropagation(); // Чтобы кнопка "Удалить" не перехватывала клик
+
+        const type = line.dataset.type;
+        const key = line.dataset.key;
+        const day = line.dataset.day;
+        const time = line.dataset.time;
+        const notes = line.dataset.notes || '';
+
+        if (type === 'lesson') {
+          const subject = line.dataset.subject;
+          const teacher = line.dataset.teacher;
+          const place = line.dataset.place;
+          openLessonModal(day, time, subject, teacher, place, key);
+        } else if (type === 'task') {
+          const desc = line.dataset.description;
+          const place = line.dataset.place;
+          const taskId = line.dataset.taskId;
+          openTaskDetailModal(day, time, desc, place, key, taskId);
+        }
+      });
     });
 
-    // клик по ячейке
-    document.querySelectorAll('.schedule-line').forEach(cell=>{
-      cell.addEventListener('click', ()=>{
-        const [ , day, time ] = cell.dataset.key.split('_');
-        const content = cell.querySelector('.line-content');
-        const subject = content.children[1]?.innerText||'';
-        const teacher = content.children[2]?.innerText||'';
-        const place   = content.children[3]?.innerText||'';
-        const desc    = content.children[1]?.innerText||'';
-        const type    = content.children.length>3?'lesson':'task';
-        openModal(day, time, subject, teacher, place, type, desc);
-      });
+    // Закрытие модального окна создания задачи при клике вне окна
+    window.addEventListener('click', function (event) {
+      const taskModal = document.getElementById('task-modal');
+      if (event.target === taskModal) {
+        closeTaskModal();
+      }
     });
 
     // Обработка кнопки "Создать задачу"
