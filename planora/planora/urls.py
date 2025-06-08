@@ -50,7 +50,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # path('home/', home_view, name='home'),
     # path('home/', include('home.urls', namespace='home')),
-    path('home/', schedule, name='schedule'),
+    path('home/', home_view, name='schedule'),
     path('', root_redirect, name='home'),
     path('about/', about_view, name='about'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),

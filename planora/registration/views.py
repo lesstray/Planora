@@ -81,13 +81,13 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     """
     if request.method == "POST":
         # Проверка CAPTCHA
-        recaptcha_token = request.POST.get('g-recaptcha-response')
-        if not recaptcha_token:
-            messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
-            return render(request, 'register.html', get_form_context(request))
-        if not verify_recaptcha(recaptcha_token):
-            messages.error(request, 'Ошибка проверки reCAPTCHA')
-            return render(request, 'register.html', get_form_context(request))
+        #recaptcha_token = request.POST.get('g-recaptcha-response')
+        #if not recaptcha_token:
+        #    messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+        #    return render(request, 'register.html', get_form_context(request))
+        #if not verify_recaptcha(recaptcha_token):
+        #    messages.error(request, 'Ошибка проверки reCAPTCHA')
+        #    return render(request, 'register.html', get_form_context(request))
 
         # Получение данных
         role = request.POST.get('role')
