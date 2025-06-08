@@ -26,19 +26,19 @@ def login_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     #     return redirect(settings.LOGIN_REDIRECT_URL)
 
     if request.method == "POST":
-        recaptcha_token = request.POST.get('g-recaptcha-response')
-        if not recaptcha_token:
-            messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
-            return render(request, 'login.html', {
-                'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
-                'username': request.POST.get('username', '')
-            })
-        if not verify_recaptcha(recaptcha_token):
-            messages.error(request, 'Ошибка проверки reCAPTCHA')
-            return render(request, 'login.html', {
-                'captcha_error': 'Проверка reCAPTCHA не пройдена',
-                'username': request.POST.get('username', '')
-            })
+    #    recaptcha_token = request.POST.get('g-recaptcha-response')
+    #    if not recaptcha_token:
+    #        messages.error(request, 'Пожалуйста, подтвердите, что вы не робот')
+    #        return render(request, 'login.html', {
+    #            'captcha_error': 'Необходимо пройти проверку reCAPTCHA',
+    #            'username': request.POST.get('username', '')
+    #        })
+    #    if not verify_recaptcha(recaptcha_token):
+    #        messages.error(request, 'Ошибка проверки reCAPTCHA')
+    #        return render(request, 'login.html', {
+    #            'captcha_error': 'Проверка reCAPTCHA не пройдена',
+    #            'username': request.POST.get('username', '')
+    #        })
 
         # Получение данных
         username = request.POST.get('username').strip()
