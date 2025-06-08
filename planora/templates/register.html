@@ -29,6 +29,13 @@
                     <label><input type="radio" name="role" value="student" {% if role == 'student' %}checked{% endif %}> Студент</label>
                 </div>
 
+                <div class="input-block" id="group-number-block">
+                    <label for="group_number">Номер учебной группы</label>
+                    <input id="group_number" type="text" name="group_number"
+                           value="{{ group_number|default:'' }}"
+                           placeholder="5151004/10101" >
+                </div>
+
                 <div class="input-block">
                     <label for="full_name">ФИО</label>
                     <input id="full_name" type="text" name="full_name"
@@ -81,5 +88,19 @@
 
         <div class="filter"></div>
     </div>
+
+    <script>
+      function toggleGroupInput() {
+        const studentChecked = document.querySelector('input[name="role"][value="student"]').checked;
+        const block = document.getElementById('group-number-block');
+        if (studentChecked) {
+          block.classList.add('show');
+        } else {
+          block.classList.remove('show');
+        }
+      }
+      document.querySelectorAll('input[name="role"]').forEach(el => el.addEventListener('change', toggleGroupInput));
+      window.addEventListener('DOMContentLoaded', toggleGroupInput);
+    </script>
 </body>
 </html>

@@ -11,6 +11,7 @@ from login.models import TwoFactorCode
 from typing import Dict, Any, Union
 from home.models import Subject, StudyGroup
 from home.ruz_teacher_parser import collect_teacher_month_schedule
+from home.ruz_student_parser import collect_student_month_schedule
 from datetime import datetime
 
 
@@ -30,6 +31,7 @@ def get_form_context(request) -> Dict:
         'full_name': request.POST.get('full_name', ''),
         'email': request.POST.get('email', ''),
         'username': request.POST.get('username', ''),
+        'group_number': request.POST.get('group_number', ''),
     }
 
 
@@ -96,11 +98,15 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
         password2 = request.POST.get('password2')
         email = request.POST.get('email').strip()
         full_name = request.POST.get('full_name').strip()
+        group_number = request.POST.get('group_number', '').strip()
 
         # Валидация данных
         errors: Dict[str, str] = {}
         if not role or role not in ('teacher', 'student'):
             errors['role'] = 'Выберите роль'
+        if role == 'student':
+            if not group_number:
+                errors['group_number'] = 'Укажите номер учебной группы'
         if not full_name:
             errors['full_name'] = 'Введите ФИО'
         if not email:
@@ -128,17 +134,72 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
             if existing_user.is_active:
                 errors['username'] = 'Логин уже используется'
             else:
-                # Удаление старой неактивной регистрации
-                existing_user.delete()
+                # не удаляем сама запись, а очищаем всё, что нужно
+                existing_user.set_password(password1)
+                existing_user.email = email
+                existing_user.full_name = full_name
+                existing_user.role = role
+                existing_user.is_active = False
+                # очищаем старые коды
                 TwoFactorCode.objects.filter(user=existing_user).delete()
+                # очищаем новые M2M-поля (если есть)
+                existing_user.teaching_subjects.clear()
+                existing_user.teaching_groups.clear()
+                existing_user.student_subjects.clear()
+                existing_user.student_teachers.clear()
+                existing_user.student_group = None
+                existing_user.save()
+                user = existing_user
+                # сразу переходим к генерации кода и отправке письма
+                code = TwoFactorCode.generate_code(user)
+                send_mail(
+                    subject='Подтверждение регистрации',
+                    message=f'Ваш код подтверждения: {code.code}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+                request.session['registration_user_id'] = user.id
+                if role == 'student':
+                    request.session['student_group_number'] = group_number
+                messages.success(request, 'Код подтверждения отправлен на вашу почту')
+                return redirect('verify_registration')
+
         existing_email = User.objects.filter(email=email).first()
         if existing_email:
             if existing_email.is_active:
                 errors['email'] = 'Email уже зарегистрирован'
             else:
-                # Удаление старой неактивной регистрации
-                existing_email.delete()
+                # не удаляем сама запись, а очищаем всё, что нужно
+                existing_email.set_password(password1)
+                existing_email.email = email
+                existing_email.full_name = full_name
+                existing_email.role = role
+                existing_email.is_active = False
+                # очищаем старые коды
                 TwoFactorCode.objects.filter(user=existing_email).delete()
+                # очищаем новые M2M-поля (если есть)
+                existing_email.teaching_subjects.clear()
+                existing_email.teaching_groups.clear()
+                existing_email.student_subjects.clear()
+                existing_email.student_teachers.clear()
+                existing_email.student_group = None
+                existing_email.save()
+                user = existing_email
+                # сразу переходим к генерации кода и отправке письма
+                code = TwoFactorCode.generate_code(user)
+                send_mail(
+                    subject='Подтверждение регистрации',
+                    message=f'Ваш код подтверждения: {code.code}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+                request.session['registration_user_id'] = user.id
+                if role == 'student':
+                    request.session['student_group_number'] = group_number
+                messages.success(request, 'Код подтверждения отправлен на вашу почту')
+                return redirect('verify_registration')
 
         # Обработка ошибок
         if errors:
@@ -169,6 +230,9 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
 
             # Сохранение ID пользователя в сессии
             request.session['registration_user_id'] = user.id
+            if role == 'student':
+                # сохраняем порядковый номер группы в сессии
+                request.session['student_group_number'] = group_number
             messages.success(request, 'Код подтверждения отправлен на вашу почту')
             return redirect('verify_registration')
 
@@ -225,7 +289,7 @@ def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any
                 # Активация пользователя
                 user.is_active = True
 
-                # Если преподаватель - собираем и сохраняем предметы и группы:
+                # Если преподаватель - собираем и сохраняем предметы и группы
                 if user.role == 'teacher':
                     # Взять расписание за ближайший месяц (сегодняшняя дата)
                     lessons, groups = collect_teacher_month_schedule(
@@ -244,13 +308,46 @@ def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any
                         obj, _ = StudyGroup.objects.get_or_create(name=grp)
                         group_objs.append(obj)
                     # Назначить M2M-поля
-                    user.subjects.set(subj_objs)
-                    user.groups.set(group_objs)
+                    user.teaching_subjects.set(subj_objs)
+                    user.teaching_groups.set(group_objs)
+
+                # Если студент - собираем и сохраняем предметы и ФИО преподавателей
+                if user.role == 'student':
+                    # 1) привязать студента к группе
+                    grp_name = request.session.get('student_group_number')
+                    group_obj, _ = StudyGroup.objects.get_or_create(name=grp_name)
+                    user.student_group = group_obj
+
+                    # 2) спарсить расписание на месяц вперёд:
+                    lessons = []  # список названий предметов
+                    teachers = []  # список ФИО преподавателей
+                    if grp_name:
+                        lessons, teachers = collect_student_month_schedule(
+                            group_number=grp_name,
+                            start_date=datetime.today().isoformat()[:10],
+                            weeks=4
+                        )
+                    # 3) сохранить предметы и связь студент-предметы
+                    subj_objs = []
+                    for subj in set(lessons):
+                        obj, _ = Subject.objects.get_or_create(name=subj)
+                        subj_objs.append(obj)
+                    user.student_subjects.add(*subj_objs)
+
+                    # 4) связь студент-преподаватели
+                    # если ваши преподаватели есть в CustomUser, найдём их:
+                    for full in set(teachers):
+                        try:
+                            t = User.objects.get(full_name=full, role='teacher')
+                            user.student_teachers.add(t)
+                        except User.DoesNotExist:
+                            pass
 
                 user.save()
 
                 # Очистка сессии
                 del request.session['registration_user_id']
+                request.session.pop('student_group_number', None)
                 messages.success(request, 'Регистрация успешно подтверждена! Теперь вы можете войти.')
                 return redirect('login')
             else:
