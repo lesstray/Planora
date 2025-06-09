@@ -25,7 +25,7 @@ from django.contrib.auth import views as auth_views
 
 
 # Импорт представлений из приложений
-from home.views import home_view, root_redirect, schedule
+from home.views import root_redirect, schedule
 from login.views import login_view, verify_2fa
 from registration.views import register_view, verify_registration
 from about.views import about_view

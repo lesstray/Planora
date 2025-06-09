@@ -15,13 +15,7 @@ urlpatterns = [
     # path('some-custom-endpoint/', views.some_view, name='some-view'),
   
     # Для создания задачи (POST) и получения списка (GET)
-    path('tasks/', TaskListCreate.as_view(), name='task-list-create'),
     
-    # Для работы с конкретной задачей (GET/DELETE)
-    path('tasks/<int:pk>/', TaskDetail.as_view(), name='task-detail'),
-
-    path('groups/<int:pk>/',GroupStatistic.as_view(),name='group-detail'),
-
     path('create-task/', views.create_task, name='create_task'),
 
     path('delete_task/', views.delete_task, name='delete_task'),

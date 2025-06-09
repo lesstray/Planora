@@ -108,7 +108,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'planora',
         'USER': 'postgres',
-        'PASSWORD': 'Frest4920310',
+        'PASSWORD': 'NyawkaKAWAI!(^-^)',
         'HOST': 'localhost',
         'PORT': '5432'
     }
