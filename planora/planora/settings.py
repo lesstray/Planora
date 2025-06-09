@@ -106,9 +106,9 @@ WSGI_APPLICATION = 'planora.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'planora',
         'USER': 'postgres',
-        'PASSWORD': 'LinaSniperSF',
+        'PASSWORD': 'NyawkaKAWAI!(^-^)',
         'HOST': 'localhost',
         'PORT': '5432'
     }
