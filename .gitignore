@@ -4,3 +4,5 @@
 /.venv/
 /planora/.idea
 *.pyc
+/*/migrations/0*
+version.txt
