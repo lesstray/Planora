@@ -18,6 +18,7 @@ from django.http import HttpResponseRedirect
 import locale
 import dateparser
 from datetime import datetime as dt, timedelta
+from datetime import date
 from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import get_object_or_404
 from .ruz_parser import get_schedule
@@ -69,6 +70,18 @@ def schedule(request):
 	date_str   = request.GET.get('scheduleDate', '')
 	context['selected_group'] = group_name
 	context['selected_date']  = date_str
+
+	if not date_str:
+		date_str = date.today().isoformat()
+		context['selected_date']  = date_str
+	# если пользователь аутентифицирован и в GET нет groupNumber,
+	# подставляем student_group из его профиля
+	if not group_name and request.user.is_authenticated:
+		sg = getattr(request.user, 'student_group', None)
+		if sg:
+			group_name = sg.name
+			context['selected_group'] = group_name
+
 
 	if group_name and date_str:
 		# парсим дату
