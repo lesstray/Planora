@@ -46,11 +46,23 @@ jobs:
       run: |
         cd planora
         python manage.py migrate
+      env:
+        DB_NAME: planora
+        DB_USER: planora_user
+        DB_PASSWORD: secretpass
+        DB_HOST: localhost
+        DB_PORT: 5432
 
     - name: Run tests
       run: |
         cd planora
         python manage.py test
+      env:
+        DB_NAME: planora
+        DB_USER: planora_user
+        DB_PASSWORD: secretpass
+        DB_HOST: localhost
+        DB_PORT: 5432
 
     - name: Static code analysis (Bandit)
       run: |
