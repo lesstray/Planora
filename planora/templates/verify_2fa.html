@@ -6,36 +6,6 @@
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
     <title>Подтверждение входа</title>
     <style>
-        .error-message {
-            color: #ff4444;
-            margin: 5px 0 15px;
-            font-size: 14px;
-            padding: 10px;
-            border-radius: 4px;
-            background-color: #ffebee;
-        }
-        .success-message {
-            color: #2e7d32;
-            margin: 5px 0 15px;
-            font-size: 14px;
-            padding: 10px;
-            border-radius: 4px;
-            background-color: #e8f5e9;
-        }
-        .form-title {
-            color: white;
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-            background: linear-gradient(45deg, #6e45e2, #88d3ce);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block; /* Это важно для градиента */
-        }
-        .input-block {
-            margin-bottom: 15px;
-        }
         .confirmation-text {
             color: white;
             margin-bottom: 20px;
@@ -47,8 +17,7 @@
         <div class="filter"></div>
 
         <div class="form-container">
-            <h2 class="form-title">Двухфакторная аутентификация</h2>
-
+            <h2 class="form-title-2fa">Двухфакторная аутентификация</h2>
             {% if messages %}
                 {% for message in messages %}
                     <div class="{% if message.tags %}{{ message.tags }}-message{% else %}info-message{% endif %}">
@@ -57,7 +26,7 @@
                 {% endfor %}
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" id="code-form">
                 <p class="confirmation-text">Мы отправили 6-значный код подтверждения на вашу почту <strong>{{ email }}</strong>. Введите его ниже:</p>
                 <div class="input-block">
                     <label for="code">Код подтверждения</label>
@@ -69,6 +38,15 @@
                     <button type="submit" class="auth-button">Подтвердить</button>
                 </div>
             </form>
+
+            <div class="auth-link">
+                Не получили код?
+                 <form method="POST" action="{% url 'verify_2fa' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="resend" value="true">
+                    <button type="submit" class="resend-button">Отправить повторно</button>
+                </form>
+            </div>
         </div>
 
         <div class="filter"></div>

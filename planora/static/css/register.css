@@ -78,6 +78,7 @@ body {
 
 .error-message {
     color: #ff4444;
+    text-align: center;
     margin: 5px 0 15px;
     font-size: 14px;
     padding: 10px;
@@ -87,6 +88,7 @@ body {
 
 .success-message {
     color: #2e7d32;
+    text-align: center;
     margin: 5px 0 15px;
     font-size: 14px;
     padding: 10px;
@@ -225,6 +227,17 @@ body {
 .auth-link a:hover {
     color: #6e45e2;
     text-decoration: underline;
+}
+
+.resend-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: #6e45e2;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 /* Анимации */

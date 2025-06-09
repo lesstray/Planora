@@ -1010,3 +1010,28 @@ mark {
 .version-footer .version-value {
     color: #ffccff; /* чуть розовее */
 }
+.delete-task-button {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b) !important;
+    color: white !important;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.delete-task-button:hover {
+    background: linear-gradient(45deg, #ff4b2b, #ff416c) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(255, 75, 43, 0.4);
+}
+
+.delete-task-button:active {
+    transform: translateY(0);
+}

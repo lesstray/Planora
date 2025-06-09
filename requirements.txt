@@ -15,3 +15,5 @@ dateparser
 phonenumbers
 pytz
 icalendar
+django-prometheus
+python-dotenv

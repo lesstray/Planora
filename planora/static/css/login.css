@@ -54,24 +54,57 @@ html, body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     transform: translateY(0);
     transition: all 0.3s ease;
-    margin: 2rem auto; /* Добавляем отступы сверху/снизу */
+    margin: 1rem auto; /* Добавляем отступы сверху/снизу */
     overflow: visible; /* Разрешаем контенту выходить за пределы */
 }
 
 .form-title {
     color: white;
-    text-align: center;
+    text-align: right;
     margin-bottom: 2rem;
     font-size: 1.8rem;
     background: linear-gradient(45deg, #6e45e2, #88d3ce);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    display: inline-block;
+    transform: translateX(88px);
+}
+.form-title-2fa {
+    color: white;
+    text-align: right;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: translateX(-70px);
 }
 
 .form-container:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.error-message {
+    color: #ff4444;
+    text-align: center;
+    margin: 5px 0 15px;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #ffebee;
+}
+
+.success-message {
+    color: #2e7d32;
+    text-align: center;
+    margin: 5px 0 15px;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #e8f5e9;
 }
 
 /* Стили для OAuth-кнопки */
@@ -118,6 +151,35 @@ form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.auth-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.auth-link a {
+    color: #88d3ce;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.auth-link a:hover {
+    color: #6e45e2;
+    text-decoration: underline;
+}
+
+.resend-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: #6e45e2;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 .input-block {
