@@ -990,3 +990,23 @@ mark {
   font-style: italic;
   color: #555;
 }
+
+.version-footer {
+    background-color: #2c003e; /* тёмно-фиолетовый */
+    color: #ffffff;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(44, 0, 62, 0.5);
+}
+
+.version-footer .version-label {
+    color: #d9b3ff; /* светло-фиолетовый */
+}
+
+.version-footer .version-value {
+    color: #ffccff; /* чуть розовее */
+}

@@ -6,8 +6,14 @@ import re
 from datetime import datetime, timedelta
 import dateparser
 import locale
-locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
+try:
+    locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+except locale.Error:
+    # fallback на дефолтную локаль
+    locale.setlocale(locale.LC_TIME, '')
+
+    
 def check_bad_subjects(place: str) -> bool:
     return any(x in place for x in ("Спорткомплекс", "Не определено", "Военная"))
 
