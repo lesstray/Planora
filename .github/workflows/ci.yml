@@ -34,3 +34,4 @@ jobs:
     - name: Generate version file
       run: |
         echo "GIT_COMMIT=$(git rev-parse --short HEAD)" > version.txt
+
