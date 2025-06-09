@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
@@ -54,6 +55,7 @@ def _make_time_slots(start="08:00", end="20:00", step_hours=2):
 	return slots
 
 
+@login_required
 def schedule(request):
 	print("DEBUG: hello from 'schedule' func...")
 	"""
