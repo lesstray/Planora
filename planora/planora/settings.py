@@ -29,6 +29,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -65,6 +67,15 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'account.middleware.SessionInfoMiddleware',
 ]
+
+#Получение версии версии
+VERSION_FILE = BASE_DIR.parent / 'version.txt'
+
+try:
+    with open(VERSION_FILE) as f:
+        GIT_VERSION = f.read().strip()
+except FileNotFoundError:
+    GIT_VERSION = 'unknown'
 
 # Настройки сессии
 SESSION_SAVE_EVERY_REQUEST = True
@@ -108,7 +119,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'planora',
         'USER': 'postgres',
-        'PASSWORD': 'NyawkaKAWAI!(^-^)',
+        'PASSWORD': 'Frest4920310',
         'HOST': 'localhost',
         'PORT': '5432'
     }

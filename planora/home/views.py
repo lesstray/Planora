@@ -10,10 +10,6 @@ from rest_framework.views import APIView
 
 
 from .models import Lesson, Task, StudyGroup
-from .serializers import (
-	TaskSerializer,
-	GroupSerializer,
-)
 from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
