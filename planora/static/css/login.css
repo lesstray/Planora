@@ -54,13 +54,13 @@ html, body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     transform: translateY(0);
     transition: all 0.3s ease;
-    margin: 2rem auto; /* Добавляем отступы сверху/снизу */
+    margin: 1rem auto; /* Добавляем отступы сверху/снизу */
     overflow: visible; /* Разрешаем контенту выходить за пределы */
 }
 
 .form-title {
     color: white;
-    text-align: center;
+    text-align: right;
     margin-bottom: 2rem;
     font-size: 1.8rem;
     background: linear-gradient(45deg, #6e45e2, #88d3ce);
@@ -68,6 +68,18 @@ html, body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
+    transform: translateX(88px);
+}
+.form-title-2fa {
+    color: white;
+    text-align: right;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    background: linear-gradient(45deg, #6e45e2, #88d3ce);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: translateX(-70px);
 }
 
 .form-container:hover {
