@@ -12,5 +12,6 @@ done
 echo "PostgreSQL is up - running migrations"
 
 # Миграции и запуск
+python planora/manage.py makemigrations
 python planora/manage.py migrate
 python planora/manage.py runserver 0.0.0.0:8000
