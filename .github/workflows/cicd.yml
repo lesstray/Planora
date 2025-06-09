@@ -55,6 +55,12 @@ jobs:
         python manage.py migrate
 
     - name: Run tests
+      env:
+        DB_NAME: planora
+        DB_USER: planora_user
+        DB_PASSWORD: secretpass
+        DB_HOST: localhost
+        DB_PORT: 5432
       run: |
         cd planora
         python manage.py test
