@@ -33,6 +33,9 @@ from itertools import chain
 from icalendar import Calendar, Event
 import pytz
 from django.http import HttpResponse
+from django.db import transaction
+from .models import Lesson, Subject, StudyGroup
+from django.utils.dateparse import parse_time
 #
 
 User = get_user_model()
@@ -103,22 +106,47 @@ def schedule(request):
 			context['error_message'] = raw['error']
 			return render(request, 'schedule.html', context)
 
-		# 2) Локальные пары из БД, если ты захочешь их хранить в модели Lesson:
-		#    (раскомментируй, как появится модель Lesson)
-		try:
-			sg = StudyGroup.objects.get(name=group_name)
-			lessons_qs = Lesson.objects.filter(
-				study_groups=sg,
-				date__range=(week_start, week_end)
-			)
-		except StudyGroup.DoesNotExist:
-			lessons_qs = Lesson.objects.none()
+		# 2) Сохраняем уроки в БД, если на эту группу и неделю их ещё нет
+		sg = StudyGroup.objects.get(name=group_name)
+		already = Lesson.objects.filter(
+			study_groups=sg,
+			date__range=(week_start, week_end)
+		).exists()
 
-		# 3) Пользовательские задачи
-		try:
-			sg = StudyGroup.objects.get(name=group_name)
-		except StudyGroup.DoesNotExist:
-			sg = None
+		if not already:
+			with transaction.atomic():
+				# пройдём по каждому дню недели
+				for offset in range(7):
+					day = week_start + timedelta(days=offset)
+					key = day.strftime('%Y-%m-%d')
+					for les in raw['schedule'].get(key, []):
+						st = les.get('start_time') or ''
+						en = les.get('end_time')   or ''
+						# упрощённо: берем первые 5 символов HH:MM
+						st = st[:5]  
+						en = en[:5]
+
+						# 2.1) получаем или создаём предмет
+						subject_obj, _ = Subject.objects.get_or_create(name=les['subject'])
+
+						# 2.2) создаём Lesson
+						lesson = Lesson.objects.create(
+							date=day,
+							start_time=parse_time(st) if st else None,
+							end_time=parse_time(en) if en else None,
+							teacher=les.get('teacher', ''),
+							location=les.get('place', ''),
+							notes=les.get('notes', ''),
+							subject=subject_obj,
+						)
+						# 2.3) связываем с группой
+						lesson.study_groups.add(sg)
+
+		# 3) Теперь мы можем спокойно читать из БД
+		lessons_qs = Lesson.objects.filter(
+			study_groups=sg,
+			date__range=(week_start, week_end)
+		)
 
 		tasks_qs = Task.objects.filter(
 			study_group=sg,
@@ -130,35 +158,40 @@ def schedule(request):
 		dates = [week_start + timedelta(days=i) for i in range(7)]
 		schedule_by_date = []
 
+		# есть ли данные в БД?
+		use_raw = not already
+
 		for day in dates:
 			date_key = day.strftime('%Y-%m-%d')
 			events = []
 
-			# A) уроки из парсера
-			for les in raw['schedule'].get(date_key, []):
-				st = les.get('start_time')
-				en = les.get('end_time') or ''
-				# форматируем времена
-				if st and ':' in st:
-					st = st[:5]
-				if en and ':' in en:
-					en = en[:5]
-				events.append({
-					'type': 'lesson',
-					'start_time': st,
-					'end_time': en,
-					'subject': les.get('subject', ''),
-					'teacher': les.get('teacher', ''),
-					'place':   les.get('place', ''),
-					'notes':   les.get('notes', ''),
-					'attachment': None,
-					'done': False,
-				})
+			if use_raw:
+				# A) уроки из парсера, если их нет в БД (флаг use_raw)
+				for les in raw['schedule'].get(date_key, []):
+					st = les.get('start_time')
+					en = les.get('end_time') or ''
+					# форматируем времена
+					if st and ':' in st:
+						st = st[:5]
+					if en and ':' in en:
+						en = en[:5]
+					events.append({
+						'type': 'lesson',
+						'start_time': st,
+						'end_time': en,
+						'subject': les.get('subject', ''),
+						'teacher': les.get('teacher', ''),
+						'place':   les.get('place', ''),
+						'notes':   les.get('notes', ''),
+						'attachment': None,
+						'done': False,
+					})
 
-			# B) уроки из БД модели Lesson (если нужно)
+			# B) уроки из БД модели Lesson добавляются всегда
 			for les in lessons_qs.filter(date=day):
 				events.append({
 					'type': 'lesson',
+					'id': les.id,
 					'start_time': les.start_time.strftime('%H:%M') if les.start_time else '',
 					'end_time':   les.end_time.strftime('%H:%M')   if les.end_time else '',
 					'subject':    les.subject.name,
@@ -390,3 +423,33 @@ def export_ics(request):
 	resp = HttpResponse(ics_content, content_type='text/calendar; charset=utf-8')
 	resp['Content-Disposition'] = 'attachment; filename="planora_week.ics"'
 	return resp
+
+
+@require_POST
+def upload_task_attachment(request, task_id):
+	task = get_object_or_404(Task, id=task_id, user=request.user)
+	attachment = request.FILES.get('attachment')
+	if not attachment:
+		return JsonResponse({'success': False, 'error': 'Файл не пришёл'})
+	task.attachment = attachment
+	task.save()
+	return JsonResponse({
+		'success': True,
+		'url': task.attachment.url,
+		'filename': task.attachment.name.split('/')[-1]
+	})
+
+
+@require_POST
+def upload_lesson_attachment(request, lesson_id):
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    attachment = request.FILES.get('attachment')
+    if not attachment:
+        return JsonResponse({'success': False, 'error': 'Файл не пришёл'})
+    lesson.attachment = attachment
+    lesson.save()
+    return JsonResponse({
+        'success':  True,
+        'url':      lesson.attachment.url,
+        'filename': lesson.attachment.name.split('/')[-1]
+    })

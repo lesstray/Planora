@@ -59,14 +59,22 @@
                      data-type="{{ ev.type }}"
                      data-day="{{ date|date:'d.m.Y' }}"
                      data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
+                     data-lesson-id="{{ ev.id }}"
                      {% if ev.type == 'lesson' %}
+                       data-type="lesson"
+                       data-lesson-id="{{ ev.id }}"
                        data-subject="{{ ev.subject }}"
                        data-teacher="{{ ev.teacher }}"
                        data-place="{{ ev.place }}"
                      {% else %}
+                       data-type="task"
                        data-description="{{ ev.description }}"
                        data-place="{{ ev.place }}"
                        data-task-id="{{ ev.id }}"
+                       {% if ev.attachment %}
+                        data-attachment-url="{{ ev.attachment.url }}"
+                        data-attachment-name="{{ ev.attachment.name|basename }}"
+                      {% endif %}
                      {% endif %}
                 >
                   <div class="line-content">
@@ -114,15 +122,23 @@
                      data-notes="{{ notes|default:'' }}"
                      data-type="{{ ev.type }}"
                      data-day="{{ date|date:'d.m.Y' }}"
+                     data-lesson-id="{{ ev.id }}"
                      data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
                      {% if ev.type == 'lesson' %}
+                       data-type="lesson"
+                       data-lesson-id="{{ ev.id }}"
                        data-subject="{{ ev.subject }}"
                        data-teacher="{{ ev.teacher }}"
                        data-place="{{ ev.place }}"
                      {% else %}
+                       data-type="task"
                        data-description="{{ ev.description }}"
                        data-place="{{ ev.place }}"
                        data-task-id="{{ ev.id }}"
+                       {% if ev.attachment %}
+                        data-attachment-url="{{ ev.attachment.url }}"
+                        data-attachment-name="{{ ev.attachment.name|basename }}"
+                      {% endif %}
                      {% endif %}
                 >
                   <div class="line-content">
@@ -170,15 +186,23 @@
                      data-notes="{{ notes|default:'' }}"
                      data-type="{{ ev.type }}"
                      data-day="{{ date|date:'d.m.Y' }}"
+                     data-lesson-id="{{ ev.id }}"
                      data-time="{{ st }}{% if en %}–{{ en }}{% endif %}"
                      {% if ev.type == 'lesson' %}
+                       data-type="lesson"
+                       data-lesson-id="{{ ev.id }}"
                        data-subject="{{ ev.subject }}"
                        data-teacher="{{ ev.teacher }}"
                        data-place="{{ ev.place }}"
                      {% else %}
+                       data-type="task"
                        data-description="{{ ev.description }}"
                        data-place="{{ ev.place }}"
                        data-task-id="{{ ev.id }}"
+                       {% if ev.attachment %}
+                        data-attachment-url="{{ ev.attachment.url }}"
+                        data-attachment-name="{{ ev.attachment.name|basename }}"
+                      {% endif %}
                      {% endif %}
                 >
                   <div class="line-content">
@@ -233,6 +257,25 @@
           Выполнено <input type="checkbox" id="lesson-done">
         </label>
       </p>
+      <form id="upload-lesson-attachment-form" enctype="multipart/form-data">
+        <p>
+          <strong>Файл:</strong>
+          <span id="current-lesson-attachment">
+            {% if ev.attachment %}
+              <a href="{{ ev.attachment.url }}" target="_blank">
+                {{ ev.attachment.name|slice:"-0:"|split:"/"|last }}
+              </a>
+            {% else %}
+              нет
+            {% endif %}
+          </span>
+        </p>
+        <div class="input-block">
+          <label for="lesson-upload-file">Заменить/добавить файл:</label>
+          <input type="file" id="lesson-upload-file" name="attachment">
+        </div>
+        <button type="submit">Загрузить файл</button>
+      </form>
     </div>
   </div>
 </div>
@@ -254,6 +297,23 @@
           Выполнено <input type="checkbox" id="task-done">
         </label>
       </p>
+      <form id="upload-attachment-form" enctype="multipart/form-data">
+        <p>
+          <strong>Файл:</strong>
+          <span id="current-attachment">
+            {% if ev.attachment %}
+              <a href="{{ ev.attachment.url }}" target="_blank">{{ ev.attachment.name|basename }}</a>
+            {% else %}
+              нет
+            {% endif %}
+          </span>
+        </p>
+        <div class="input-block">
+          <label for="upload-file">Заменить/добавить файл:</label>
+          <input type="file" id="upload-file" name="attachment">
+        </div>
+        <button type="submit">Загрузить файл</button>
+      </form>
     </div>
   </div>
 </div>
@@ -313,7 +373,7 @@
   const storageKey = 'planora_notes';
   let allNotes = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
-  function openLessonModal(day, time, subject, teacher, place, key) {
+  function openLessonModal(day, time, subject, teacher, place, key, lessonId) {
     document.getElementById('lesson-day').innerText = day;
     document.getElementById('lesson-time').innerText = time;
     document.getElementById('lesson-subject').innerText = subject;
@@ -326,6 +386,7 @@
 
     const modal = document.getElementById('lesson-modal');
     modal.dataset.currentKey = key;
+    modal.dataset.lessonId = lessonId;
     modal.classList.remove('hidden');
     modal.style.display = 'block';
   }
@@ -348,7 +409,7 @@
   }
 
 
-  function openTaskDetailModal(day, time, desc, place, key, taskId) {
+  function openTaskDetailModal(line, day, time, desc, place, key, taskId) {
     document.getElementById('task-day').innerText = day;
     document.getElementById('task-time').innerText = time;
     document.getElementById('task-desc').innerText = desc;
@@ -360,7 +421,17 @@
 
     const modal = document.getElementById('task-detail-modal');
     modal.dataset.currentKey = key;
+    modal.dataset.taskId = taskId;
     //document.getElementById('delete-task-button').dataset.taskId = taskId;
+    // файлы в существующей задаче
+    const attUrl  = line.dataset.attachmentUrl;
+    const attName = line.dataset.attachmentName;
+    const cur = document.getElementById('current-attachment');
+    if (attUrl) {
+      cur.innerHTML = `<a href="${attUrl}" target="_blank">${attName}</a>`;
+    } else {
+      cur.innerText = 'нет';
+    }
 
     modal.classList.remove('hidden');
     modal.style.display = 'block';
@@ -405,24 +476,96 @@
         e.stopPropagation(); // Чтобы кнопка "Удалить" не перехватывала клик
 
         const type = line.dataset.type;
+        const taskId = line.dataset.taskId;
+        const lessonId = line.dataset.lessonId;
+        console.log(lessonId);
         const key = line.dataset.key;
         const day = line.dataset.day;
         const time = line.dataset.time;
         const notes = line.dataset.notes || '';
 
         if (type === 'lesson') {
+          const lessonId = line.dataset.lessonId;
           const subject = line.dataset.subject;
           const teacher = line.dataset.teacher;
           const place = line.dataset.place;
-          openLessonModal(day, time, subject, teacher, place, key);
+          openLessonModal(day, time, subject, teacher, place, key, lessonId);
         } else if (type === 'task') {
           const desc = line.dataset.description;
           const place = line.dataset.place;
           const taskId = line.dataset.taskId;
-          openTaskDetailModal(day, time, desc, place, key, taskId);
+          openTaskDetailModal(line, day, time, desc, place, key, taskId);
         }
       });
     });
+
+    // загрузка файла в существующую задачу
+    document.getElementById('upload-attachment-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const form = e.currentTarget;
+    const inp = document.getElementById('upload-file');
+    if (!inp.files.length) return alert('Выберите файл');
+    const file = inp.files[0];
+
+    // taskId берем из data атрибута модалки
+    const modal = document.getElementById('task-detail-modal');
+    const taskId = modal.dataset.taskId;
+    const url = `/task/${taskId}/upload_task_attachment/`;
+
+    const data = new FormData();
+    data.append('attachment', file);
+    // не забыть CSRF
+    const csrftoken = getCookie('csrftoken');
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken },
+      body: data
+    });
+    const json = await resp.json();
+    if (json.success) {
+      // заменяем в UI ссылку
+      document.getElementById('current-attachment').innerHTML =
+        `<a href="${json.url}" target="_blank">${json.filename}</a>`;
+      alert('Файл сохранён');
+    } else {
+      alert('Ошибка: ' + (json.error||''));
+    }
+  });
+
+
+  // загрузка файла в существующую пару
+  document
+  .getElementById('upload-lesson-attachment-form')
+  .addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const inp    = document.getElementById('lesson-upload-file');
+    if (!inp.files.length) return alert('Выберите файл');
+    const file   = inp.files[0];
+
+    const modal     = document.getElementById('lesson-modal');
+    const lessonId  = modal.dataset.lessonId;           // <-- from data-lesson-id
+    const url       = `/lesson/${lessonId}/upload_lesson_attachment/`;
+
+    const data      = new FormData();
+    data.append('attachment', file);
+
+    const csrftoken = getCookie('csrftoken');
+    const resp      = await fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken },
+      body: data
+    });
+    const json = await resp.json();
+
+    if (!json.success) return alert(json.error || 'Ошибка');
+
+    // Обновляем в UI
+    const cur = document.getElementById('current-lesson-attachment');
+    cur.innerHTML = `<a href="${json.url}" target="_blank">${json.filename}</a>`;
+    alert('Файл сохранён');
+  });
 
     // Закрытие модального окна создания задачи при клике вне окна
     window.addEventListener('click', function (event) {
