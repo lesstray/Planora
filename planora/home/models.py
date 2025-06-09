@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.conf import settings
 
 User = get_user_model()
 
@@ -59,7 +60,18 @@ class Task(AbstractEvent):
         if not self.description and self.notes:
             self.description = self.notes[:200]
         super().save(*args, **kwargs)
-        
+
+
+class Attendance(models.Model):
+    lesson    = models.ForeignKey('Lesson', on_delete=models.CASCADE, related_name='attendances')
+    student   = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    present   = models.BooleanField(default=False)
+    comment   = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('lesson', 'student')
+
 
 class Group(models.Model):
     title = models.CharField(max_length=50, default='') # Номер группы
