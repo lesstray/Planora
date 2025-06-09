@@ -24,6 +24,15 @@ services:
       DB_PORT: 5432
     ports:
       - "8000:8000"
+    command: >
+      sh -c "
+        until PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c '\q'; do
+          echo 'Waiting for postgres...'; sleep 1;
+        done &&
+        python planora/manage.py migrate &&
+        python planora/manage.py runserver 0.0.0.0:8000
+      "
+
 
 volumes:
   pg_data:
