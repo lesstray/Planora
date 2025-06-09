@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import subprocess
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -69,13 +71,28 @@ MIDDLEWARE = [
 ]
 
 #Получение версии версии
-VERSION_FILE = BASE_DIR.parent / 'version.txt'
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Путь к корню репозитория вручную (на один уровень выше BASE_DIR)
+REPO_ROOT = BASE_DIR.parent
+VERSION_FILE = REPO_ROOT / 'version.txt'
 
 try:
-    with open(VERSION_FILE) as f:
-        GIT_VERSION = f.read().strip()
-except FileNotFoundError:
-    GIT_VERSION = 'unknown'
+    # Получаем короткий хеш коммита, указывая путь к корню репозитория
+    version = subprocess.check_output(
+        ['git', '-C', str(REPO_ROOT), 'rev-parse', '--short', 'HEAD'],
+        stderr=subprocess.DEVNULL
+    ).decode().strip()
+
+    # Записываем в файл version.txt
+    VERSION_FILE.write_text(version)
+except Exception:
+    version = 'unknown'
+print(version)
+print(REPO_ROOT)
+GIT_VERSION = version
+
 
 # Настройки сессии
 SESSION_SAVE_EVERY_REQUEST = True
