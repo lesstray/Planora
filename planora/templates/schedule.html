@@ -91,12 +91,8 @@
                       {% if ev.attachment %}
                         <div><a href="{{ ev.attachment.url }}" target="_blank">📎 Файл</a></div>
                       {% endif %}
-                      <button
-                        class="delete-task-button"
-                        data-task-id="{{ ev.id }}"
-                        style="color: red; margin-top:5px;"
-                      >
-                        Удалить
+                      <button class="delete-task-button" data-task-id="{{ ev.id }}">
+                        <i class="fas fa-trash-alt"></i> Удалить
                       </button>
                     {% endif %}
                   </div>
