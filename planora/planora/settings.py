@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import subprocess
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +29,8 @@ SECRET_KEY = 'django-insecure-dvg-@)9ypp1g6lr_j3s=nm06(mq3bwaht6@qkl=t*(bs07s6aa
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
 
 
 # Application definition
@@ -65,6 +69,30 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'account.middleware.SessionInfoMiddleware',
 ]
+
+#Получение версии версии
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Путь к корню репозитория вручную (на один уровень выше BASE_DIR)
+REPO_ROOT = BASE_DIR.parent
+VERSION_FILE = REPO_ROOT / 'version.txt'
+
+try:
+    # Получаем короткий хеш коммита, указывая путь к корню репозитория
+    version = subprocess.check_output(
+        ['git', '-C', str(REPO_ROOT), 'rev-parse', '--short', 'HEAD'],
+        stderr=subprocess.DEVNULL
+    ).decode().strip()
+
+    # Записываем в файл version.txt
+    VERSION_FILE.write_text(version)
+except Exception:
+    version = 'unknown'
+print(version)
+print(REPO_ROOT)
+GIT_VERSION = version
+
 
 # Настройки сессии
 SESSION_SAVE_EVERY_REQUEST = True
@@ -106,9 +134,9 @@ WSGI_APPLICATION = 'planora.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'planora',
         'USER': 'postgres',
-        'PASSWORD': 'LinaSniperSF',
+        'PASSWORD': 'Frest4920310',
         'HOST': 'localhost',
         'PORT': '5432'
     }
