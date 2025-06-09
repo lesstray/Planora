@@ -25,8 +25,7 @@ jobs:
           --health-retries=5
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -46,23 +45,11 @@ jobs:
       run: |
         cd planora
         python manage.py migrate
-      env:
-        DB_NAME: planora
-        DB_USER: planora_user
-        DB_PASSWORD: secretpass
-        DB_HOST: localhost
-        DB_PORT: 5432
 
     - name: Run tests
       run: |
         cd planora
         python manage.py test
-      env:
-        DB_NAME: planora
-        DB_USER: planora_user
-        DB_PASSWORD: secretpass
-        DB_HOST: localhost
-        DB_PORT: 5432
 
     - name: Static code analysis (Bandit)
       run: |
@@ -78,19 +65,17 @@ jobs:
     needs: build
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
-        username: lesstray
+        username: ${{ github.actor }}
         password: ${{ secrets.PAT_TOKEN }}
 
     - name: Build and push Docker image
       run: |
-        IMAGE_NAME=ghcr.io/${{ github.repository }}
-        IMAGE_NAME_LOWER=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
-        docker build -t $IMAGE_NAME_LOWER:latest .
-        docker push $IMAGE_NAME_LOWER:latest
+        IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/planora:latest
+        docker build -t $IMAGE_NAME .
+        docker push $IMAGE_NAME
