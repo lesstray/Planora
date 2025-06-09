@@ -10,37 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import os
 import subprocess
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dvg-@)9ypp1g6lr_j3s=nm06(mq3bwaht6@qkl=t*(bs07s6aa'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
+# Разрешенные хосты
 ALLOWED_HOSTS = []
 
-
-
-
-# Application definition
-
+# Определение приложений
 INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'django_recaptcha',
     'django_extensions',
     'django.contrib.admin',
+    'django_prometheus',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -58,7 +47,9 @@ INSTALLED_APPS = [
     'statistic',
 ]
 
+# Определение промежуточного слоя
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -68,47 +59,37 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_otp.middleware.OTPMiddleware',
     'account.middleware.SessionInfoMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
-#Получение версии версии
+# Валидация пароля
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Путь к корню репозитория вручную (на один уровень выше BASE_DIR)
-REPO_ROOT = BASE_DIR.parent
-VERSION_FILE = REPO_ROOT / 'version.txt'
-
-try:
-    # Получаем короткий хеш коммита, указывая путь к корню репозитория
-    version = subprocess.check_output(
-        ['git', '-C', str(REPO_ROOT), 'rev-parse', '--short', 'HEAD'],
-        stderr=subprocess.DEVNULL
-    ).decode().strip()
-
-    # Записываем в файл version.txt
-    VERSION_FILE.write_text(version)
-except Exception:
-    version = 'unknown'
-print(version)
-print(REPO_ROOT)
-GIT_VERSION = version
-
-
-# Настройки сессии
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 86400  # 1 день в секундах
-
-# Настройки email для отправки кодов
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mail.ru'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'planora.ibks@mail.ru'
-EMAIL_HOST_PASSWORD = 'iDXp2YtYaftrpngp9ydH'
-DEFAULT_FROM_EMAIL = 'planora.ibks@mail.ru'
-
+# Корневой конфиг urls
 ROOT_URLCONF = 'planora.urls'
+WSGI_APPLICATION = 'planora.wsgi.application'
 
+# Локализация
+LANGUAGE_CODE = 'ru-ru'
+TIME_ZONE = 'Europe/Moscow'
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+# Шаблоны
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -125,90 +106,89 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'planora.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'LinaSniperSF',
-        'HOST': 'localhost',
-        'PORT': '5432'
-    }
-}
-
-RECAPTCHA_PUBLIC_KEY = '6LfWeAArAAAAAGGJPad1xXbx3tYEK42XATLYcOM9'
-RECAPTCHA_PRIVATE_KEY = '6LfWeAArAAAAAJ9LUja_Ndj7_pcwCGkX82P_BqXk'
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = 'ru-ru'
-TIME_ZONE = 'Europe/Moscow'
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-
-
+# Модель пользователя
 AUTH_USER_MODEL = 'registration.CustomUser'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+# Путь до статики
 STATIC_URL = '/static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+# PK по умолчанию
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# OAuth2 with Google
+# Настройки базовых URL
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'home'
+
+# Загрузка переменных окружения
+load_dotenv(BASE_DIR / '.env')
+
+# Настройка проекта PLANORA
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG') == 'True'
+
+# Настройка сессии
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400  # 1 день в секундах
+
+# Настройка БД
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
+}
+
+# Настройка электронной почты
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Настройка ReCAPTCHA
+RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC')
+RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE')
+
+# Настройка OAuth2 with Google
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
-
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '799111395392-j09mh0mpjd6c8ejhgupkhg7s21h7r3es.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
-
-LOGIN_URL = 'login'
-
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'home'
-
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
     'openid'
 ]
+
+# Путь к корню репозитория вручную (на один уровень выше BASE_DIR)
+REPO_ROOT = BASE_DIR.parent
+VERSION_FILE = REPO_ROOT / 'version.txt'
+
+# Получение версии
+try:
+    # Получаем короткий хеш коммита, указывая путь к корню репозитория
+    version = subprocess.check_output(
+        ['git', '-C', str(REPO_ROOT), 'rev-parse', '--short', 'HEAD'],
+        stderr=subprocess.DEVNULL
+    ).decode().strip()
+
+    # Записываем в файл version.txt
+    VERSION_FILE.write_text(version)
+except Exception:
+    version = 'unknown'
+print(version)
+print(REPO_ROOT)
+GIT_VERSION = version

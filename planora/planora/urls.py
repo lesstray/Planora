@@ -48,6 +48,7 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('admin/', admin.site.urls),
     path('password-reset/', include('django.contrib.auth.urls')),
+    path('', include('django_prometheus.urls')),
     # path('home/', home_view, name='home'),
     # path('home/', include('home.urls', namespace='home')),
     #path('home/', home_view, name='schedule'),

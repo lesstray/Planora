@@ -5,4 +5,5 @@
 /planora/.idea
 *.pyc
 /*/migrations/0*
-version.txt
+../version.txt
+.env
