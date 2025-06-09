@@ -69,13 +69,22 @@ MIDDLEWARE = [
 ]
 
 #Получение версии версии
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 VERSION_FILE = BASE_DIR.parent / 'version.txt'
 
 try:
-    with open(VERSION_FILE) as f:
-        GIT_VERSION = f.read().strip()
-except FileNotFoundError:
-    GIT_VERSION = 'unknown'
+    # Получаем текущую версию git (короткий hash коммита)
+    version = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
+
+    # Обновляем version.txt
+    with open(VERSION_FILE, 'w') as f:
+        f.write(version)
+
+except Exception:
+    version = 'unknown'
+
+GIT_VERSION = version
 
 # Настройки сессии
 SESSION_SAVE_EVERY_REQUEST = True
