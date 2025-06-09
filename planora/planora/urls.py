@@ -23,7 +23,6 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from django.contrib.auth import views as auth_views
 
-
 # Импорт представлений из приложений
 from home.views import root_redirect, schedule
 from login.views import login_view, verify_2fa
@@ -48,6 +47,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('admin/', admin.site.urls),
+    path('password-reset/', include('django.contrib.auth.urls')),
     # path('home/', home_view, name='home'),
     # path('home/', include('home.urls', namespace='home')),
     #path('home/', home_view, name='schedule'),

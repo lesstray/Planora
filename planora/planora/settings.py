@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'home',
     'about',
     'account',
-    'statistic'
+    'statistic',
 ]
 
 MIDDLEWARE = [
