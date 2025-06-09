@@ -16,6 +16,10 @@ urlpatterns = [
     path('task/<int:task_id>/upload_task_attachment/', views.upload_task_attachment, name='upload_task_attachment'),
     # добавить файл к существующей паре
     path('lesson/<int:lesson_id>/upload_lesson_attachment/', views.upload_lesson_attachment, name='upload_lesson_attachment'),
+    # получение списка всех студентов данной лекции
+    path('schedule/lesson_students/', views.lesson_students, name='lesson_students'),
+    # сохранить данные о посещении пары
+    path('schedule/save_attendance/', views.save_attendance, name='save_attendance'),
     # Дополнительные кастомные эндпоинты (если нужны)
     # path('some-custom-endpoint/', views.some_view, name='some-view'),
   
