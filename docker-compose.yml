@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   db:
@@ -9,17 +9,13 @@ services:
       POSTGRES_USER: planora_user
       POSTGRES_PASSWORD: secretpass
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
   web:
-    build: .
-    command: python planora/manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
+    image: ghcr.io/lesstray/planora:latest
+    restart: always
     depends_on:
       - db
     environment:
@@ -28,6 +24,8 @@ services:
       DB_PASSWORD: secretpass
       DB_HOST: db
       DB_PORT: 5432
+    ports:
+      - "8000:8000"
 
 volumes:
-  postgres_data:
+  pg_data:
