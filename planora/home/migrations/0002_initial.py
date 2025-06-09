@@ -10,14 +10,24 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('login', '0001_initial'),
+        ('home', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='twofactorcode',
+            model_name='task',
             name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='lesson',
+            name='study_groups',
+            field=models.ManyToManyField(related_name='lessons', to='home.StudyGroup'),
+        ),
+        migrations.AddField(
+            model_name='lesson',
+            name='subject',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='home.subject'),
         ),
     ]
