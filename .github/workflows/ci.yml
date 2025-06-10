@@ -71,6 +71,7 @@ jobs:
         DB_PORT: 5432
       run: |
         cd planora
+        python manage.py makemigrations
         python manage.py migrate
     
     - name: Run tests
