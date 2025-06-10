@@ -286,22 +286,38 @@ def create_inactive_user(
     # Завершение регистрации
     finish_register(request, user, email, role, group_number)
 
+# Документация для GET
+@swagger_auto_schema(
+    method='get',
+    operation_description="Возвращает страницу регистрации нового пользователя",
+    responses={
+        200: openapi.Response('Успешный ответ'),
+    },
+    tags=['Registration']
+)
+# Документация для POST
 @swagger_auto_schema(
     method='post',
     operation_description="Регистрация нового пользователя",
     request_body=register_body,
     responses={
-        status.HTTP_302_FOUND: openapi.Response('Редирект на страницу подтверждения регистрации'),
-        status.HTTP_400_BAD_REQUEST: openapi.Response('Ошибка валидации данных', schema=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'errors': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=openapi.Schema(type=openapi.TYPE_STRING))
-            }
-        ))
+        status.HTTP_302_FOUND: openapi.Response('Редирект на страницу подтверждения'),
+        status.HTTP_400_BAD_REQUEST: openapi.Response(
+            'Ошибка валидации данных',
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'errors': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        additional_properties=openapi.Schema(type=openapi.TYPE_STRING)
+                    )
+                }
+            )
+        )
     },
     tags=['Registration']
 )
-@api_view(['POST'])
+@api_view(['GET', 'POST']) 
 def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     """
     Обрабатывает регистрацию нового пользователя с подтверждением по email
@@ -345,22 +361,42 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     return render(request, 'register.html', get_form_context(request))
 
 
+# Документация для GET-запроса
+@swagger_auto_schema(
+    method='get',
+    operation_description="Страница подтверждения регистрации по коду 2FA",
+    responses={
+        status.HTTP_200_OK: openapi.Response(
+            'Страница подтверждения регистрации',
+            examples={
+                "application/json": {
+                    "email": "user@example.com"
+                }
+            }
+        )
+    },
+    tags=['Registration']
+)
+# Документация для POST-запроса
 @swagger_auto_schema(
     method='post',
     operation_description="Подтверждение регистрации по коду 2FA",
     request_body=verify_body,
     responses={
         status.HTTP_302_FOUND: openapi.Response('Редирект на дашборд после успешной активации'),
-        status.HTTP_400_BAD_REQUEST: openapi.Response('Ошибка проверки кода', schema=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'error': openapi.Schema(type=openapi.TYPE_STRING)
-            }
-        ))
+        status.HTTP_400_BAD_REQUEST: openapi.Response(
+            'Ошибка проверки кода',
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
     },
     tags=['Registration']
 )
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     """
     Подтверждает регистрацию по коду из email
