@@ -18,8 +18,8 @@ from registration.models import CustomUser
 # Attendance.objects.all().delete()
 
 # === Настройки ===
-start_date = datetime(2024, 6, 1)
-end_date = datetime(2024, 6, 15)
+start_date = datetime(2025, 6, 1)
+end_date = datetime(2025, 6, 15)
 days_range = (end_date - start_date).days
 
 # === Подготовка данных ===

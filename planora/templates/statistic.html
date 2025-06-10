@@ -5,6 +5,25 @@
 {% block content %}
 <div class="statistics-page">
     <h1>📊 Статистика</h1>
+    <!-- Форма выбора периода -->
+    <p>Выберите промежуток дат для получения статистики в заданном диапазоне</p>
+    <form method="get" class="date-filter-form" style="margin-bottom: 1.5em;">
+        <label for="start_date">С:</label>
+        <div class="input-block">
+            <input type="date"
+                   id="start_date"
+                   name="start_date"
+                   value="{{ start_date|date:'Y-m-d' }}" required>
+        </div>
+        <label for="end_date">По:</label>
+        <div class="input-block">
+            <input type="date"
+                   id="end_date"
+                   name="end_date"
+                   value="{{ end_date|date:'Y-m-d' }}" required>
+        </div>
+        <button type="submit" class="auth-button">Показать</button>
+    </form>
     <p>Период анализа: {{ start_date }} — {{ end_date }}</p>
 
     <h2>👨‍🎓 Студенты</h2>
@@ -55,6 +74,6 @@
         </tbody>
     </table>
     <h2>📈 Графики</h2>
-    <img src="{% static chart_url %}" alt="Статистика студентов" style="max-width: 100%; height: auto;">
+    <img src="{% static 'reports/report.png' %}" alt="Статистика студентов" style="max-width: 100%; height: auto;">
 </div>
 {% endblock %}
