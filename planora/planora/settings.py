@@ -172,6 +172,54 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'openid'
 ]
+# Если одно и то же письмо пытаются залогинить через разные провайдеры —
+# объединит их в один User
+SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
+
+# Не позволит создать два User с одним и тем же email,
+# если выше шаг не сработал (по умолчанию False)
+SOCIAL_AUTH_UNIQUE_EMAIL = True
+
+# Если заходят с OAuth‑аккаунтом, который уже привязан — перезальёт данные
+# (например, обновит first_name/last_name)
+SOCIAL_AUTH_CLEAN_USER_DATA = True
+SOCIAL_AUTH_PIPELINE = (
+    # 1. Берет из ответа провайдера базовую инфу (имя, email и т.п.)
+    'social_core.pipeline.social_auth.social_details',
+
+    # 2. Получает уникальный id провайдера
+    'social_core.pipeline.social_auth.social_uid',
+
+    # 3. Проверяет, разрешено ли логиниться через этого провайдера
+    'social_core.pipeline.social_auth.auth_allowed',
+
+    # 4. Ищет уже привязанный аккаунт
+    'social_core.pipeline.social_auth.social_user',
+
+    # 5. Блокировка преподавателей (по домену)
+    'complete_profile.pipeline.block_teachers_by_domain',
+    
+    # 6. Генерирует username (если его нет)
+    'social_core.pipeline.user.get_username',
+
+    # 7. Если пользователь с таким email уже есть - сразу связывает с ним
+    'social_core.pipeline.social_auth.associate_by_email',
+
+    # 8. Если все еще не нашёлся пользователь - создает нового
+    'social_core.pipeline.user.create_user',
+
+    # 9. Ассоциирует Social Auth запись с объектом User
+    'social_core.pipeline.social_auth.associate_user',
+
+    # 10. Сохраняет токены/другие данные из ответа провайдера
+    'social_core.pipeline.social_auth.load_extra_data',
+
+    # 11. Обновляет детали пользователя (first_name, last_name, email)
+    'social_core.pipeline.user.user_details',
+
+    # 12. Если новый студент - запрос ФИО и группы
+    'complete_profile.pipeline.require_additional_info'
+)
 
 # Путь к корню репозитория вручную (на один уровень выше BASE_DIR)
 REPO_ROOT = BASE_DIR.parent

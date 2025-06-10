@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <title>Заполнение данных</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    <div class="container">
+        <div class="filter"></div>
+
+        <div class="form-container">
+            <form method="POST" class="auth-form" id="register-form" action="{% url 'complete_profile' %}">
+                <h2 class="form-title">Заполнение данных</h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="{% if message.tags %}{{ message.tags }}-message{% else %}info-message{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="input-block">
+                    <label for="full_name">ФИО</label>
+                    <input id="full_name" type="text" name="full_name"
+                           value="{{ full_name|default:'' }}"
+                           placeholder="Иванов Иван Иванович" required>
+                </div>
+
+                <div class="input-block">
+                    <label for="group_number">Номер учебной группы</label>
+                    <input id="group_number" type="text" name="group_number"
+                           value="{{ group_number|default:'' }}"
+                           placeholder="5151004/10101" required>
+                </div>
+
+            {% csrf_token %}
+            <div class="button-block">
+                <button type="submit" class="auth-button">Сохранить</button>
+            </div>
+
+        </form>
+    </div>
+    <div class="filter"></div>
+</div>
