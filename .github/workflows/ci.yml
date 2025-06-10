@@ -66,11 +66,14 @@ jobs:
       env:
         DB_NAME: planora
         DB_USER: postgres
-        DB_PASSWORD: NyaKawai
+        DB_PASS: NyaKawai
         DB_HOST: localhost
         DB_PORT: 5432
       run: |
         cd planora
+        echo $DB_NAME
+        echo $DB_HOST
+        echo $DB_PASS
         python manage.py makemigrations
         python manage.py migrate
     
