@@ -30,7 +30,7 @@ from registration.views import register_view, verify_registration
 from about.views import about_view
 from account.views import dashboard, change_password, terminate_sessions
 from statistic.views import statistics_view
-
+from complete_profile.views import complete_profile
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -65,4 +65,6 @@ urlpatterns = [
     path('change-password/', change_password, name='change_password'),
     path('terminate-sessions/', terminate_sessions, name='terminate_sessions'),
     path('statistic', statistics_view, name='statistic'),
+    path('complete-profile/', complete_profile, name='complete_profile'),
+    path('complete/<str:backend>/', include('social_django.urls', namespace='social')),
 ]
