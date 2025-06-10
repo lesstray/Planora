@@ -12,24 +12,18 @@ jobs:
 
     services:
       postgres:
-      image: postgres:13
-      env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: test_db
-      ports:
-        - 5432:5432
-      options: >-
-        --health-cmd pg_isready
-        --health-interval 10s
-        --health-timeout 5s
-        --health-retries 5
-
-      env:
-        DB_HOST: localhost
-        DB_NAME: planora
-        DB_USER: postgres
-        DB_PASSWORD: NyaKawai
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: NyaKawai
+          POSTGRES_DB: planora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5        
 
     steps:
     - name: Checkout code
@@ -68,6 +62,21 @@ jobs:
         echo "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=${{ secrets.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY }}" >> .env
         echo "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=${{ secrets.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET }}" >> .env
 
+    - name: Apply migrations
+      env:
+        DB_NAME: planora
+        DB_USER: postgres
+        DB_PASS: NyaKawai
+        DB_HOST: localhost
+        DB_PORT: 5432
+      run: |
+        cd planora
+        echo $DB_NAME
+        echo $DB_HOST
+        echo $DB_PASS
+        python manage.py makemigrations
+        python manage.py migrate
+    
     - name: Run tests
       run: |
         cd planora 

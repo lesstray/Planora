@@ -138,26 +138,26 @@ SESSION_COOKIE_AGE = 86400  # 1 день в секундах
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASS'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'NAME': str(os.getenv('DB_NAME')),
+        'USER':str(os.getenv('DB_USER')),
+        'PASSWORD': str(os.getenv('DB_PASS')),
+        'HOST': str(os.getenv('DB_HOST')),
+        'PORT': str(os.getenv('DB_PORT')),
     }
 }
 
 # Настройка электронной почты
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_PORT = 465
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Настройка ReCAPTCHA
-RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC')
-RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE')
+RECAPTCHA_PUBLIC_KEY = str(os.getenv('RECAPTCHA_PUBLIC'))
+RECAPTCHA_PRIVATE_KEY = str(os.getenv('RECAPTCHA_PRIVATE'))
 
 # Настройка OAuth2 with Google
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
