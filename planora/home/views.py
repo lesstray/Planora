@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 
 
 from .models import Lesson, Task, StudyGroup
@@ -43,13 +44,23 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 #
 
+
 User = get_user_model()
 
-# views.py
+
+# параметры Swagger
+common_params = [
+    openapi.Parameter('groupNumber', openapi.IN_QUERY, description="Номер группы", type=openapi.TYPE_STRING),
+    openapi.Parameter('scheduleDate', openapi.IN_QUERY, description="Дата расписания (YYYY-MM-DD)", type=openapi.TYPE_STRING),
+    openapi.Parameter('teacher_fullname', openapi.IN_QUERY, description="ФИО преподавателя", type=openapi.TYPE_STRING),
+]
+lesson_id_param = openapi.Parameter('lesson_id', openapi.IN_QUERY, description="ID урока", type=openapi.TYPE_INTEGER)
+task_id_param = openapi.Parameter('task_id', openapi.IN_QUERY, description="ID задачи", type=openapi.TYPE_INTEGER)
 
 
 def root_redirect(request):
 	return HttpResponseRedirect('/about')
+
 
 # Для расписания
 def _make_time_slots(start="08:00", end="20:00", step_hours=2):
@@ -63,6 +74,17 @@ def _make_time_slots(start="08:00", end="20:00", step_hours=2):
 	return slots
 
 
+# Для функции schedule
+@swagger_auto_schema(
+	operation_description="Формирование расписания для отображения: пары и задачи из БД. Если пар и задач нет в БД, то загрузка их в БД с дальнейшим отображением.",
+    method='get',
+    manual_parameters=common_params,
+    responses={
+        200: openapi.Response('HTML страница расписания'),
+        400: openapi.Response('Ошибка в формате данных')
+    }
+)
+@api_view(['GET'])
 @login_required
 def schedule(request):
 	print("DEBUG: hello from 'schedule' func...")
@@ -499,7 +521,41 @@ def schedule(request):
 
 #####################################
 #####################################
-
+# Для функции lesson_students
+@swagger_auto_schema(
+	operation_description="Получение списка групп и студентов этих групп, для которых проводится пара с данным id",
+    method='get',
+    manual_parameters=[lesson_id_param],
+    responses={
+        200: openapi.Response('Список студентов', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'groups': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                            'name': openapi.Schema(type=openapi.TYPE_STRING),
+                            'students': openapi.Schema(
+                                type=openapi.TYPE_ARRAY,
+                                items=openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                        'full_name': openapi.Schema(type=openapi.TYPE_STRING)
+                                    }
+                                )
+                            )
+                        }
+                    )
+                )
+            }
+        )),
+        404: openapi.Response('Урок не найден')
+    }
+)
+@api_view(['GET'])
 def lesson_students(request):
 	"""
 	Получаем список групп, для которых проводится пара
@@ -526,6 +582,38 @@ def lesson_students(request):
 	print(f"DEBUG: @lesson_students: Groups for lesson: {result}")
 	return JsonResponse({'groups': result})
 
+
+# Для функции save_attendance
+@swagger_auto_schema(
+	operation_description="Сохранение или обновление списка посещения пары с заданным id",
+    method='post',
+    manual_parameters=[lesson_id_param],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'records': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'student_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'present': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'comment': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            )
+        }
+    ),
+    responses={
+        200: openapi.Response('Статус сохранения', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={'status': openapi.Schema(type=openapi.TYPE_STRING)}
+        )),
+        400: openapi.Response('Неверный запрос'),
+        404: openapi.Response('Урок не найден')
+    }
+)
+@api_view(['POST'])
 @csrf_exempt
 def save_attendance(request):
 	"""
@@ -579,6 +667,30 @@ def save_attendance(request):
 
 #####################################
 #####################################
+# Для функции create_task
+@swagger_auto_schema(
+	operation_description="Создание новой пользовательской задачи",
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['description', 'date'],
+        properties={
+            'group': openapi.Schema(type=openapi.TYPE_STRING),
+            'date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
+            'start_time': openapi.Schema(type=openapi.TYPE_STRING, format='time'),
+            'end_time': openapi.Schema(type=openapi.TYPE_STRING, format='time'),
+            'description': openapi.Schema(type=openapi.TYPE_STRING),
+            'place': openapi.Schema(type=openapi.TYPE_STRING),
+            'notes': openapi.Schema(type=openapi.TYPE_STRING),
+            'done': openapi.Schema(type=openapi.TYPE_BOOLEAN)
+        }
+    ),
+    responses={
+        302: openapi.Response('Редирект на расписание'),
+        400: openapi.Response('Неверные данные')
+    }
+)
+@api_view(['POST'])
 @require_POST
 def create_task(request):
 	"""
@@ -616,6 +728,22 @@ def create_task(request):
 	return HttpResponseRedirect(url)
 
 
+# Для функции toggle_task_done
+@swagger_auto_schema(
+	operation_description="Отметка о выполнении пользовательской задачи",
+    method='post',
+    responses={
+        200: openapi.Response('Статус задачи', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                'done': openapi.Schema(type=openapi.TYPE_BOOLEAN)
+            }
+        )),
+        404: openapi.Response('Задача не найдена')
+    }
+)
+@api_view(['POST'])
 @require_POST
 def toggle_task_done(request, task_id):
 	task = get_object_or_404(Task, id=task_id, user=request.user)
@@ -624,6 +752,26 @@ def toggle_task_done(request, task_id):
 	return JsonResponse({'success': True, 'done': task.done})
 
 
+# Для функции delete_task
+@swagger_auto_schema(
+	operation_description="Удаление пользовательской задачи с заданным task_id",
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['task_id'],
+        properties={
+            'task_id': openapi.Schema(type=openapi.TYPE_INTEGER)
+        }
+    ),
+    responses={
+        200: openapi.Response('Результат удаления', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={'success': openapi.Schema(type=openapi.TYPE_BOOLEAN)}
+        )),
+        404: openapi.Response('Задача не найдена')
+    }
+)
+@api_view(['POST'])
 @require_POST
 def delete_task(request):
 	task_id = request.POST.get('task_id')
@@ -632,6 +780,20 @@ def delete_task(request):
 	return JsonResponse({'success': True})
 
 
+# Для функции export_ics
+@swagger_auto_schema(
+	operation_description="Экспорт расписания (пары и пользовательские задачи) в формат ''.ics' для дальнейшего импорта в календарь",
+    method='get',
+    manual_parameters=common_params,
+    responses={
+        200: openapi.Response('Файл календаря', schema=openapi.Schema(
+            type=openapi.TYPE_FILE,
+            description='Файл в формате ICS'
+        )),
+        400: openapi.Response('Ошибка в параметрах')
+    }
+)
+@api_view(['GET'])
 @require_GET
 def export_ics(request):
 	
@@ -877,6 +1039,26 @@ def export_ics(request):
 	return resp
 
 
+# Для функции upload_task_attachment
+@swagger_auto_schema(
+	operation_description="Загрузка файла вложения пользовательской задачи",
+    method='post',
+    manual_parameters=[openapi.Parameter('task_id', openapi.IN_PATH, type=openapi.TYPE_INTEGER)],
+    consumes=['multipart/form-data'],
+    responses={
+        200: openapi.Response('Результат загрузки', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                'url': openapi.Schema(type=openapi.TYPE_STRING),
+                'filename': openapi.Schema(type=openapi.TYPE_STRING)
+            }
+        )),
+        400: openapi.Response('Файл не прикреплен'),
+        404: openapi.Response('Задача не найдена')
+    }
+)
+@api_view(['POST'])
 @require_POST
 def upload_task_attachment(request, task_id):
 	task = get_object_or_404(Task, id=task_id, user=request.user)
@@ -892,6 +1074,26 @@ def upload_task_attachment(request, task_id):
 	})
 
 
+# Для функции upload_lesson_attachment
+@swagger_auto_schema(
+	operation_description="Загрузка файла вложения пары",
+    method='post',
+    manual_parameters=[openapi.Parameter('lesson_id', openapi.IN_PATH, type=openapi.TYPE_INTEGER)],
+    consumes=['multipart/form-data'],
+    responses={
+        200: openapi.Response('Результат загрузки', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                'url': openapi.Schema(type=openapi.TYPE_STRING),
+                'filename': openapi.Schema(type=openapi.TYPE_STRING)
+            }
+        )),
+        400: openapi.Response('Файл не прикреплен'),
+        404: openapi.Response('Урок не найден')
+    }
+)
+@api_view(['POST'])
 @require_POST
 def upload_lesson_attachment(request, lesson_id):
 	lesson = get_object_or_404(Lesson, id=lesson_id)
