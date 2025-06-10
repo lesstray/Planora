@@ -64,5 +64,5 @@ urlpatterns = [
     path('dashboard', dashboard, name='dashboard'),
     path('change-password/', change_password, name='change_password'),
     path('terminate-sessions/', terminate_sessions, name='terminate_sessions'),
-    path('statistic', statistics_view, name='statistic'),
+    path('statistic/', statistics_view, name='statistic'),
 ]
