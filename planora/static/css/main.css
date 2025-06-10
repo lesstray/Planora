@@ -1035,3 +1035,7 @@ mark {
 .delete-task-button:active {
     transform: translateY(0);
 }
+
+.date-filter-form {
+    color:black;
+}
