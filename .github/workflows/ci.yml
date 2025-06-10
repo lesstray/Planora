@@ -24,7 +24,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5        
-          
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -62,6 +62,17 @@ jobs:
         echo "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=${{ secrets.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY }}" >> .env
         echo "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=${{ secrets.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET }}" >> .env
 
+    - name: Apply migrations
+      env:
+        DB_NAME: planora
+        DB_USER: postgres
+        DB_PASSWORD: NyaKawai
+        DB_HOST: localhost
+        DB_PORT: 5432
+      run: |
+        cd planora
+        python manage.py migrate
+    
     - name: Run tests
       run: |
         cd planora 
