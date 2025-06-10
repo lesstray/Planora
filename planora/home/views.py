@@ -638,7 +638,9 @@ def export_ics(request):
 	# читаем параметры
 	group_name = request.GET.get('groupNumber', '')
 	date_str   = request.GET.get('scheduleDate', '')
+	teacher_fullname = request.GET.get('teacher', '')
 	print(f"DEBUG: @export_ics group_name = {group_name}")
+	schedule_by_date = []
 	if group_name and date_str:
 		# парсим дату
 		try:
@@ -652,6 +654,106 @@ def export_ics(request):
 
 		# 1) Пары из внешнего парсера RUZ
 		raw = get_schedule(group_name, week_start.isoformat())
+		if 'error' in raw:
+			pass
+
+		# 2) Локальные пары из БД
+		try:
+			sg = StudyGroup.objects.get(name=group_name)
+			lessons_qs = Lesson.objects.filter(
+				study_groups=sg,
+				date__range=(week_start, week_end)
+			)
+		except StudyGroup.DoesNotExist:
+			lessons_qs = Lesson.objects.none()
+
+		# 3) Пользовательские задачи
+		try:
+			sg = StudyGroup.objects.get(name=group_name)
+		except StudyGroup.DoesNotExist:
+			sg = None
+
+		tasks_qs = Task.objects.filter(
+			study_group=sg,
+			user=request.user,
+			date__range=(week_start, week_end)
+		)
+
+		# Формируем по дням
+		dates = [week_start + timedelta(days=i) for i in range(7)]
+		schedule_by_date = []
+
+		for day in dates:
+			date_key = day.strftime('%Y-%m-%d')
+			events = []
+
+			# A) Пары из парсера
+			for les in raw['schedule'].get(date_key, []):
+				st = les.get('start_time')
+				en = les.get('end_time') or ''
+				# форматируем времена
+				if st and ':' in st:
+					st = st[:5]
+				if en and ':' in en:
+					en = en[:5]
+				events.append({
+					'type': 'lesson',
+					'start_time': st,
+					'end_time': en,
+					'subject': les.get('subject', ''),
+					'teacher': les.get('teacher', ''),
+					'place':   les.get('place', ''),
+					'notes':   les.get('notes', ''),
+					'attachment': None,
+					'done': False,
+				})
+
+			# B) Пары из БД модели Lesson
+			for les in lessons_qs.filter(date=day):
+				events.append({
+					'type': 'lesson',
+					'start_time': les.start_time.strftime('%H:%M') if les.start_time else '',
+					'end_time':   les.end_time.strftime('%H:%M')   if les.end_time else '',
+					'subject':    les.subject.name,
+					'teacher':    les.teacher,
+					'place':      les.location,
+					'notes':      les.notes,
+					'attachment': les.attachment,
+					'done':       False,
+				})
+
+			# C) пользовательские задачи
+			for task in tasks_qs.filter(date=day):
+				events.append({
+					'type':      'task',
+					'id':         task.id,
+					'start_time': task.start_time.strftime('%H:%M') if task.start_time else '',
+					'end_time':   task.end_time.strftime('%H:%M')   if task.end_time else '',
+					'description':task.description,
+					'place':      task.location,
+					'notes':      task.notes,
+					'attachment': task.attachment,
+					'done':       task.done,
+				})
+
+			# сортируем по времени начала
+			events.sort(key=lambda ev: ev['start_time'] or '00:00')
+			schedule_by_date.append((day, events))
+
+
+	elif teacher_fullname:
+		# парсим дату
+		try:
+			selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+		except ValueError:
+			pass
+
+		# границы недели
+		week_start = selected_date - timedelta(days=selected_date.weekday())
+		week_end   = week_start + timedelta(days=6)
+
+		# 1) Пары из внешнего парсера RUZ
+		raw = get_teacher_schedule(teacher_fullname, week_start.isoformat())
 		if 'error' in raw:
 			pass
 
