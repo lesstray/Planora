@@ -6,6 +6,27 @@ on:
   pull_request:
     branches: [ "**" ]
 
+services:
+  postgres:
+  image: postgres:13
+  env:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_DB: test_db
+  ports:
+    - 5432:5432
+  options: >-
+    --health-cmd pg_isready
+    --health-interval 10s
+    --health-timeout 5s
+    --health-retries 5
+
+  env:
+    DB_HOST: localhost
+    DB_NAME: planora
+    DB_USER: postgres
+    DB_PASSWORD: NyaKawai
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,6 +44,29 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Create .env file
+      run: |
+        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+        echo "DEBUG=${{ secrets.DEBUG }}" >> .env
+
+        echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+        echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+        echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+        echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+        echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+
+        echo "EMAIL_HOST=${{ secrets.EMAIL_HOST }}" >> .env
+        echo "EMAIL_PORT=${{ secrets.EMAIL_PORT }}" >> .env
+        echo "EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}" >> .env
+        echo "EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}" >> .env
+        echo "EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}" >> .env
+
+        echo "RECAPTCHA_PUBLIC=${{ secrets.RECAPTCHA_PUBLIC }}" >> .env
+        echo "RECAPTCHA_PRIVATE=${{ secrets.RECAPTCHA_PRIVATE }}" >> .env
+
+        echo "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=${{ secrets.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY }}" >> .env
+        echo "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=${{ secrets.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET }}" >> .env
 
     - name: Run tests
       run: |
