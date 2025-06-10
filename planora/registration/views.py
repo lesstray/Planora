@@ -15,6 +15,39 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 
+# Swagger
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+
+
+register_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    required=['role', 'username', 'password1', 'password2', 'email', 'full_name'],
+    properties={
+        'role': openapi.Schema(type=openapi.TYPE_STRING, enum=['teacher', 'student'], description='Роль пользователя'),
+        'username': openapi.Schema(type=openapi.TYPE_STRING, description='Логин пользователя'),
+        'password1': openapi.Schema(type=openapi.TYPE_STRING, description='Пароль пользователя'),
+        'password2': openapi.Schema(type=openapi.TYPE_STRING, description='Подтверждение пароля'),
+        'email': openapi.Schema(type=openapi.TYPE_STRING, format='email', description='Email пользователя'),
+        'full_name': openapi.Schema(type=openapi.TYPE_STRING, description='Полное имя пользователя'),
+        'group_number': openapi.Schema(type=openapi.TYPE_STRING, description='Номер группы (если роль student)'),
+    }
+)
+
+verify_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    required=['code'],
+    properties={
+        'code': openapi.Schema(type=openapi.TYPE_STRING, description='Код подтверждения из email'),
+        'resend': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Запрос повторной отправки кода', default=False),
+    }
+)
+#
 
 User = get_user_model()
 
@@ -253,7 +286,22 @@ def create_inactive_user(
     # Завершение регистрации
     finish_register(request, user, email, role, group_number)
 
-
+@swagger_auto_schema(
+    method='post',
+    operation_description="Регистрация нового пользователя",
+    request_body=register_body,
+    responses={
+        status.HTTP_302_FOUND: openapi.Response('Редирект на страницу подтверждения регистрации'),
+        status.HTTP_400_BAD_REQUEST: openapi.Response('Ошибка валидации данных', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'errors': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=openapi.Schema(type=openapi.TYPE_STRING))
+            }
+        ))
+    },
+    tags=['Registration']
+)
+@api_view(['POST'])
 def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     """
     Обрабатывает регистрацию нового пользователя с подтверждением по email
@@ -297,6 +345,22 @@ def register_view(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     return render(request, 'register.html', get_form_context(request))
 
 
+@swagger_auto_schema(
+    method='post',
+    operation_description="Подтверждение регистрации по коду 2FA",
+    request_body=verify_body,
+    responses={
+        status.HTTP_302_FOUND: openapi.Response('Редирект на дашборд после успешной активации'),
+        status.HTTP_400_BAD_REQUEST: openapi.Response('Ошибка проверки кода', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'error': openapi.Schema(type=openapi.TYPE_STRING)
+            }
+        ))
+    },
+    tags=['Registration']
+)
+@api_view(['POST'])
 def verify_registration(request: HttpRequest) -> Union[HttpResponseRedirect, Any]:
     """
     Подтверждает регистрацию по коду из email
