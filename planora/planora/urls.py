@@ -64,7 +64,7 @@ urlpatterns = [
     path('dashboard', dashboard, name='dashboard'),
     path('change-password/', change_password, name='change_password'),
     path('terminate-sessions/', terminate_sessions, name='terminate_sessions'),
-    path('statistic', statistics_view, name='statistic'),
     path('complete-profile/', complete_profile, name='complete_profile'),
     path('complete/<str:backend>/', include('social_django.urls', namespace='social')),
+    path('statistic/', statistics_view, name='statistic'),
 ]

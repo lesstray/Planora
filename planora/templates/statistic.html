@@ -1,10 +1,60 @@
 {% extends 'layout.html' %}
-
+{% load static %}
 {% block title %}Planora - Статистика{% endblock %}
 
 {% block content %}
-    <div class="statistics-page">
-        <h1>📊 Статистика</h1>
-        <p>Раздел в разработке...</p>
-    </div>
+<div class="statistics-page">
+    <h1>📊 Статистика</h1>
+    <p>Период анализа: {{ start_date }} — {{ end_date }}</p>
+
+    <h2>👨‍🎓 Студенты</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Присутствий / Всего</th>
+                <th>Посещаемость (%)</th>
+                <th>Выполнено задач / Всего</th>
+                <th>Выполнение задач (%)</th>
+                <th>Пар за период</th>
+                <th>Задач за период</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in student_data %}
+            <tr>
+                <td>{{ s.name }}</td>
+                <td>{{ s.present_total }} / {{ s.attend_total }}</td>
+                <td>{{ s.attend_percent }}%</td>
+                <td>{{ s.done_tasks }} / {{ s.total_tasks }}</td>
+                <td>{{ s.done_percent }}%</td>
+                <td>{{ s.lessons_in_period }}</td>
+                <td>{{ s.tasks_in_period }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>👨‍🏫 Преподаватели</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Группы</th>
+                <th>Проведённых пар за период</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in teacher_data %}
+            <tr>
+                <td>{{ t.name }}</td>
+                <td>{{ t.groups|join:", " }}</td>
+                <td>{{ t.lessons }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>📈 Графики</h2>
+    <img src="{% static chart_url %}" alt="Статистика студентов" style="max-width: 100%; height: auto;">
+</div>
 {% endblock %}

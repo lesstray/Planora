@@ -17,3 +17,5 @@ pytz
 icalendar
 django-prometheus
 python-dotenv
+matplotlib
+seaborn
