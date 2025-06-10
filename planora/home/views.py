@@ -233,7 +233,6 @@ def schedule(request):
 					'notes':      les.notes,
 					'attachment': les.attachment,
 					'done':       False,
-					'groups': les.groups,
 				})
 
 			# C) пользовательские задачи
