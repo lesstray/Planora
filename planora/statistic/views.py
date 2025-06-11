@@ -11,11 +11,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+from django.contrib.auth.decorators import login_required
 
 #
 from plot_reports import make_plot_file
 
 
+@login_required
 def statistics_view(request):
     # Попытка получить даты из GET-параметров
     start_str = request.GET.get('start_date')

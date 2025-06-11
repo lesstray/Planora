@@ -19,3 +19,6 @@ django-prometheus
 python-dotenv
 matplotlib
 seaborn
+psutil
+GPUtil
+django-admin-charts

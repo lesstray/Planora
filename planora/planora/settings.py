@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Разрешенные хосты
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.142.1', '127.0.0.1']
 
 # Определение приложений
 INSTALLED_APPS = [
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'about',
     'account',
     'statistic',
+    'monitoring',
 ]
 
 # Определение промежуточного слоя
